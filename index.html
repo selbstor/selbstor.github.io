@@ -313,6 +313,123 @@
       flex-shrink: 0;
     }
 
+    .admin-btn {
+      background: none;
+      color: var(--gray-700);
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .admin-btn:hover {
+      background: var(--gray-100);
+    }
+
+    .admin-btn svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .admin-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 300;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .admin-overlay.open {
+      display: flex;
+    }
+
+    .admin-box {
+      background: var(--white);
+      width: 100%;
+      max-width: 360px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-xl);
+      padding: 24px;
+      position: relative;
+    }
+
+    .admin-box h3 {
+      font-size: 1.05rem;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    .admin-box label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: 6px;
+    }
+
+    .admin-box input {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius);
+      font-size: 1rem;
+      font-family: var(--font);
+      margin-bottom: 14px;
+      background: var(--white);
+      color: var(--text);
+      outline: none;
+    }
+
+    .admin-box input:focus {
+      border-color: var(--primary);
+    }
+
+    .admin-erro {
+      color: #DC2626;
+      font-size: 0.82rem;
+      margin: -4px 0 12px;
+      display: none;
+    }
+
+    .admin-erro.show {
+      display: block;
+    }
+
+    .admin-acoes {
+      display: flex;
+      gap: 10px;
+    }
+
+    .admin-acoes button {
+      flex: 1;
+      padding: 11px;
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .admin-acoes .admin-cancelar {
+      background: var(--gray-100);
+      color: var(--gray-700);
+    }
+
+    .admin-acoes .admin-entrar {
+      background: var(--primary);
+      color: var(--white);
+    }
+
+    .admin-acoes .admin-entrar:hover {
+      background: var(--primary-hover);
+    }
+
     .search-toggle {
       display: none;
       background: none;
@@ -1491,6 +1608,9 @@
           </svg>
         </button>
         <a class="channel-btn" id="channelBtn" href="#" target="_blank" rel="noopener noreferrer"></a>
+        <button type="button" class="admin-btn" onclick="abrirAdminLogin()" aria-label="Acesso administrativo">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+        </button>
       </div>
     </div>
   </header>
@@ -1512,6 +1632,22 @@
   </main>
 
   <!-- Product Modal -->
+  <div class="admin-overlay" id="adminOverlay" onclick="if(event.target===this)fecharAdminLogin()">
+    <div class="admin-box">
+      <h3>Acesso restrito</h3>
+      <form id="adminForm" onsubmit="return enviarAdminLogin(event)" autocomplete="off">
+        <label for="adminEmail">Email</label>
+        <input type="email" id="adminEmail" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <label for="adminSenha">Senha</label>
+        <input type="password" id="adminSenha" autocomplete="new-password" inputmode="numeric">
+        <div class="admin-erro" id="adminErro">Email ou senha incorretos.</div>
+        <div class="admin-acoes">
+          <button type="button" class="admin-cancelar" onclick="fecharAdminLogin()">Cancelar</button>
+          <button type="submit" class="admin-entrar">Entrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
   <div class="modal-overlay" id="productModal" onclick="if(event.target===this)closeProductModal()">
     <div class="modal">
       <button class="modal-close" onclick="closeProductModal()"><svg xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -2209,6 +2345,36 @@
           searchBar.classList.remove('mobile-open');
         }
       }
+    });
+    // ============================================
+    // ACESSO ADMINISTRATIVO
+    // ============================================
+    function abrirAdminLogin() {
+      document.getElementById('adminEmail').value = '';
+      document.getElementById('adminSenha').value = '';
+      document.getElementById('adminErro').classList.remove('show');
+      document.getElementById('adminOverlay').classList.add('open');
+      setTimeout(function() { document.getElementById('adminEmail').focus(); }, 50);
+    }
+    function fecharAdminLogin() {
+      document.getElementById('adminOverlay').classList.remove('open');
+    }
+    function enviarAdminLogin(e) {
+      if (e) e.preventDefault();
+      var email = document.getElementById('adminEmail').value.trim().toLowerCase();
+      var senha = document.getElementById('adminSenha').value.split('').filter(function(c) { return c >= '0' && c <= '9'; }).join('');
+      var d = new Date();
+      var hoje = d.getFullYear() + ('0' + (d.getMonth() + 1)).slice(-2) + ('0' + d.getDate()).slice(-2);
+      var emailOk = CONFIG.email && email === String(CONFIG.email).trim().toLowerCase();
+      if (emailOk && senha === hoje) {
+        window.location.href = 'https://selbstor.github.io/admin.html';
+      } else {
+        document.getElementById('adminErro').classList.add('show');
+      }
+      return false;
+    }
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') fecharAdminLogin();
     });
     function nameToHex(name) {
       var paletas = {
