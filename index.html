@@ -939,8 +939,8 @@
       display: inline-flex;
       align-items: center;
       gap: 7px;
-      padding: 4px 4px 4px 10px;
-      background: rgba(0, 0, 0, 0.72);
+      padding: 4px 4px 4px 12px;
+      background: var(--video-btn-bg, #1F1FE6);
       color: #fff;
       border-radius: 50px;
       font-size: 0.66rem;
@@ -949,12 +949,11 @@
       text-decoration: none;
       white-space: nowrap;
       cursor: pointer;
-      backdrop-filter: blur(2px);
-      transition: background 0.2s ease, transform 0.2s ease;
+      transition: filter 0.2s ease, transform 0.2s ease;
     }
 
     .video-btn:hover {
-      background: rgba(0, 0, 0, 0.9);
+      filter: brightness(1.15);
       transform: scale(1.04);
     }
 
@@ -979,7 +978,7 @@
     .video-btn.video-btn-off:hover {
       cursor: default;
       transform: none;
-      background: rgba(0, 0, 0, 0.72);
+      filter: none;
     }
 
     @media (max-width: 480px) {
@@ -1825,6 +1824,7 @@
         topBar.textContent = CONFIG.mensagemTopo;
         if (CONFIG.corBarraTopo) {
           topBar.style.background = CONFIG.corBarraTopo;
+          document.documentElement.style.setProperty('--video-btn-bg', CONFIG.corBarraTopo);
         }
         topBar.classList.add('show');
       }
@@ -1892,9 +1892,9 @@
 
     function videoButtonHTML(p) {
       var url = videoUrlFix(p.video);
-      var inner = 'Vídeo Demonstrativo<span class="video-play">' + PLAY_SVG + '</span>';
+      var inner = 'Vídeo<span class="video-play">' + PLAY_SVG + '</span>';
       if (url) {
-        return '<a class="video-btn" href="' + url + '" target="_blank" rel="noopener noreferrer" title="Assistir vídeo demonstrativo" onclick="event.stopPropagation();">' + inner + '</a>';
+        return '<a class="video-btn" href="' + url + '" target="_blank" rel="noopener noreferrer" title="Assistir vídeo" onclick="event.stopPropagation();">' + inner + '</a>';
       }
       // Sem link na planilha: o botão aparece, mas não faz nada ao clicar
       return '<span class="video-btn video-btn-off" onclick="event.stopPropagation();">' + inner + '</span>';
