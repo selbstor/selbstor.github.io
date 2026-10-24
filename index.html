@@ -913,6 +913,74 @@
       white-space: nowrap;
     }
 
+    .badge-platform {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .badge-platform.badge-shopee {
+      background: #EE4D2D;
+      backdrop-filter: none;
+      box-shadow: 0 2px 6px rgba(238, 77, 45, 0.35);
+    }
+
+    .badge-platform svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    .video-btn {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      z-index: 3;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 4px 4px 4px 10px;
+      background: rgba(0, 0, 0, 0.72);
+      color: #fff;
+      border-radius: 50px;
+      font-size: 0.66rem;
+      font-weight: 600;
+      line-height: 1;
+      text-decoration: none;
+      white-space: nowrap;
+      cursor: pointer;
+      backdrop-filter: blur(2px);
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .video-btn:hover {
+      background: rgba(0, 0, 0, 0.9);
+      transform: scale(1.04);
+    }
+
+    .video-btn .video-play {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #fff;
+      color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .video-btn .video-play svg {
+      width: 14px;
+      height: 14px;
+      margin-left: 1px;
+    }
+
+    @media (max-width: 480px) {
+      .video-btn { font-size: 0.58rem; gap: 5px; padding-left: 8px; }
+      .video-btn .video-play { width: 22px; height: 22px; }
+      .video-btn .video-play svg { width: 12px; height: 12px; }
+    }
+
     .badge-limited {
       position: absolute;
       bottom: 10px;
@@ -1799,6 +1867,32 @@
     }
     function filterProducts() { renderProducts(); }
 
+    var SHOPEE_BAG_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V6.5a5 5 0 0 1 10 0V8" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><path d="M3.5 8h17l-1 13h-15z" fill="#fff"/><text x="12" y="18" font-size="10.5" font-weight="800" text-anchor="middle" fill="#EE4D2D" font-family="Arial,sans-serif">S</text></svg>';
+    var PLAY_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.53.85l10-6.5a1 1 0 0 0 0-1.7l-10-6.5A1 1 0 0 0 8 5.5z"/></svg>';
+
+    function platformBadgeHTML(p) {
+      if (!p.plataforma) return '';
+      var isShopee = p.plataforma.toLowerCase().indexOf('shopee') !== -1;
+      return '<span class="badge-platform' + (isShopee ? ' badge-shopee' : '') + '">' + (isShopee ? SHOPEE_BAG_SVG : '') + p.plataforma + '</span>';
+    }
+
+    function videoUrlFix(u) {
+      u = (u || '').trim();
+      if (!u) return '';
+      if (u.indexOf('http') !== 0) u = 'https://' + u;
+      return u;
+    }
+
+    function videoButtonHTML(p) {
+      var url = videoUrlFix(p.video);
+      var inner = 'Vídeo Demonstrativo<span class="video-play">' + PLAY_SVG + '</span>';
+      if (url) {
+        return '<a class="video-btn" href="' + url + '" target="_blank" rel="noopener noreferrer" title="Assistir vídeo demonstrativo" onclick="event.stopPropagation();">' + inner + '</a>';
+      }
+      // Sem link na planilha: o botão aparece igual, mas abre os detalhes do produto
+      return '<span class="video-btn" title="Ver detalhes do produto">' + inner + '</span>';
+    }
+
     function productCardHTML(p) {
       var idx = PRODUCTS.indexOf(p);
       var hasPromo = p.precoPromo && p.precoPromo > 0 && p.preco > 0 && p.precoPromo < p.preco;
@@ -1810,7 +1904,8 @@
       return '<div class="product-card" onclick="openProductModal(' + idx + ')">' +
         '<div class="product-img-wrap"><img src="' + p.img1 + '" alt="' + p.nome + '" loading="lazy" onerror="handleImgError(this)">' +
         (hasPromo ? '<span class="badge-promo">-' + Math.round((1 - p.precoPromo / p.preco) * 100) + '%</span>' : '') +
-        (p.plataforma ? '<span class="badge-platform">' + p.plataforma + '</span>' : '') +
+        platformBadgeHTML(p) +
+        videoButtonHTML(p) +
         (ofertaExpiraEmBreve(p) ? '<span class="badge-limited">Oferta por tempo limitado</span>' : '') +
         '</div>' +
         '<div class="product-info">' +
