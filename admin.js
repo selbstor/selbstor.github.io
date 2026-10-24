@@ -117,10 +117,19 @@ function comLink(html, link) {
   return `<a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer" title="Abrir link de afiliado">${html}</a>`;
 }
 
+// ============ TOTAL DE PRODUTOS ============
+function atualizarTotal(exibidos) {
+  const total = produtos.length;
+  const rotulo = n => n + (n === 1 ? ' produto' : ' produtos');
+  document.getElementById('totalProdutos').textContent =
+    exibidos === total ? `Total: ${rotulo(total)}` : `Mostrando ${exibidos} de ${rotulo(total)}`;
+}
+
 // ============ MENSAGEM (tabela + cards) ============
 function mostrarMensagem(msg) {
   document.getElementById('corpoTabela').innerHTML = `<tr><td colspan="7" class="vazio">${escapeHtml(msg)}</td></tr>`;
   document.getElementById('listaCards').innerHTML = `<div class="vazio">${escapeHtml(msg)}</div>`;
+  document.getElementById('totalProdutos').textContent = '';
 }
 
 // ============ RENDERIZAR (tabela no desktop, cards no celular) ============
@@ -141,8 +150,12 @@ function renderizarTabela() {
     return matchBusca && matchStatus && matchCat;
   });
 
+  // Mais recentes (últimas linhas da planilha) primeiro
+  filtrados.sort((a, b) => b._linha - a._linha);
+
   if (filtrados.length === 0) {
     mostrarMensagem('Nenhum produto encontrado');
+    atualizarTotal(0);
     return;
   }
 
@@ -198,6 +211,8 @@ function renderizarTabela() {
       </div>
     `;
   }).join('');
+
+  atualizarTotal(dados.length);
 }
 
 // ============ MENU DE AÇÕES (três pontinhos) ============
@@ -519,6 +534,7 @@ async function enviarImagem(arquivo) {
 // ============ EVENTOS ============
 document.getElementById('btnNovo').onclick = novoProduto;
 document.getElementById('btnRecarregar').onclick = carregarProdutos;
+document.getElementById('btnRecarregarMobile').onclick = carregarProdutos;
 document.getElementById('busca').oninput = renderizarTabela;
 document.getElementById('filtroStatus').onchange = renderizarTabela;
 document.getElementById('filtroCategoria').onchange = renderizarTabela;
