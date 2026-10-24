@@ -4,8 +4,7 @@ let produtoEditando = null;
 
 // ============ CARREGAR ============
 async function carregarProdutos() {
-  const corpo = document.getElementById('corpoTabela');
-  corpo.innerHTML = '<tr><td colspan="8" class="vazio">Carregando produtos...</td></tr>';
+  mostrarMensagem('Carregando produtos...');
   try {
     const resp = await fetch(ACHADINHOS.planilha_catalogo + '&t=' + Date.now(), {
       method: 'GET',
@@ -13,7 +12,7 @@ async function carregarProdutos() {
       cache: 'no-cache'
     });
     if (!resp.ok) {
-      corpo.innerHTML = `<tr><td colspan="8" class="vazio">Erro HTTP ${resp.status} ao carregar planilha.</td></tr>`;
+      mostrarMensagem(`Erro HTTP ${resp.status} ao carregar planilha.`);
       return;
     }
     let texto = await resp.text();
@@ -22,7 +21,7 @@ async function carregarProdutos() {
     renderizarTabela();
   } catch (e) {
     console.error('Erro:', e);
-    corpo.innerHTML = `<tr><td colspan="8" class="vazio">Erro de conexão: ${e.message}</td></tr>`;
+    mostrarMensagem(`Erro de conexão: ${e.message}`);
   }
 }
 
@@ -95,12 +94,19 @@ function escapeHtml(s) {
   }[c]));
 }
 
-// ============ RENDERIZAR TABELA (Atualizada com mais colunas) ============
+// ============ MENSAGEM (tabela + cards) ============
+function mostrarMensagem(msg) {
+  document.getElementById('corpoTabela').innerHTML = `<tr><td colspan="7" class="vazio">${escapeHtml(msg)}</td></tr>`;
+  document.getElementById('listaCards').innerHTML = `<div class="vazio">${escapeHtml(msg)}</div>`;
+}
+
+// ============ RENDERIZAR (tabela no desktop, cards no celular) ============
 function renderizarTabela() {
   const busca = (document.getElementById('busca').value || '').toLowerCase();
   const filtro = document.getElementById('filtroStatus').value;
   const corpo = document.getElementById('corpoTabela');
-  
+  const cards = document.getElementById('listaCards');
+
   const filtrados = produtos.filter(p => {
     const nome = (get(p, 'Nome') || '').toLowerCase();
     const cat = (get(p, 'Categoria') || '').toLowerCase();
@@ -109,38 +115,100 @@ function renderizarTabela() {
     const matchStatus = !filtro || ativo === filtro;
     return matchBusca && matchStatus;
   });
-  
+
   if (filtrados.length === 0) {
-    corpo.innerHTML = '<tr><td colspan="8" class="vazio">Nenhum produto encontrado</td></tr>';
+    mostrarMensagem('Nenhum produto encontrado');
     return;
   }
-  
-  corpo.innerHTML = filtrados.map(p => {
-    const nome = get(p, 'Nome') || '(sem nome)';
-    const img = (get(p, 'Imagem 1', 'Imagem') || '').trim();
-    const cat = get(p, 'Categoria') || '-';
-    const preco = get(p, 'Preço') || '0';
-    const destaque = get(p, 'Destaque') || 'Não';
-    const ativo = get(p, 'Ativo') || 'Sim';
-    
-    const imgHtml = img ? `<img src="${escapeHtml(img)}" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:4px;" onerror="this.style.display='none'">` : '—';
-    
+
+  const dados = filtrados.map(p => ({
+    linha: p._linha,
+    nome: get(p, 'Nome') || '(sem nome)',
+    img: (get(p, 'Imagem 1', 'Imagem') || '').trim(),
+    cat: get(p, 'Categoria') || '-',
+    preco: get(p, 'Preço') || '0',
+    destaque: get(p, 'Destaque') || 'Não',
+    ativo: get(p, 'Ativo') || 'Sim'
+  }));
+
+  const botaoMenu = linha =>
+    `<button type="button" class="btn-menu" title="Ações" aria-label="Ações" onclick="abrirMenu(event, ${linha})">⋮</button>`;
+
+  // Tabela (desktop)
+  corpo.innerHTML = dados.map(d => {
+    const imgHtml = d.img
+      ? `<img src="${escapeHtml(d.img)}" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:4px;" onerror="this.style.display='none'">`
+      : '—';
     return `
       <tr>
         <td>${imgHtml}</td>
-        <td><strong>${escapeHtml(nome)}</strong></td>
-        <td>${escapeHtml(cat)}</td>
-        <td>R$ ${escapeHtml(preco)}</td>
-        <td><span class="badge badge-${destaque === 'Sim' ? 'destaque' : 'nao'}">${destaque}</span></td>
-        <td><span class="badge badge-${ativo === 'Sim' ? 'sim' : 'nao'}">${ativo}</span></td>
-        <td class="acoes">
-          <button class="btn btn-sm btn-icono" title="Editar produto" onclick="editar(${p._linha})">✏️</button>
-          <button class="btn btn-sm btn-icono" title="Excluir produto" onclick="excluir(${p._linha})">🗑️</button>
-        </td>
+        <td><strong>${escapeHtml(d.nome)}</strong></td>
+        <td>${escapeHtml(d.cat)}</td>
+        <td>R$ ${escapeHtml(d.preco)}</td>
+        <td><span class="badge badge-${d.destaque === 'Sim' ? 'destaque' : 'nao'}">${escapeHtml(d.destaque)}</span></td>
+        <td><span class="badge badge-${d.ativo === 'Sim' ? 'sim' : 'nao'}">${escapeHtml(d.ativo)}</span></td>
+        <td class="acoes">${botaoMenu(d.linha)}</td>
       </tr>
     `;
   }).join('');
+
+  // Cards (celular)
+  cards.innerHTML = dados.map(d => {
+    const imgHtml = d.img
+      ? `<img src="${escapeHtml(d.img)}" alt="" onerror="this.style.display='none'">`
+      : '🛍️';
+    return `
+      <div class="card-produto">
+        <div class="card-img">${imgHtml}</div>
+        <div class="card-info">
+          <div class="card-nome">${escapeHtml(d.nome)}</div>
+          <div class="card-cat">${escapeHtml(d.cat)}</div>
+          <div class="card-preco">R$ ${escapeHtml(d.preco)}</div>
+          <div class="card-badges">
+            <span class="badge badge-${d.destaque === 'Sim' ? 'destaque' : 'nao'}">${d.destaque === 'Sim' ? '★ Destaque' : 'Sem destaque'}</span>
+            <span class="badge badge-${d.ativo === 'Sim' ? 'sim' : 'nao'}">${d.ativo === 'Sim' ? 'Ativo' : 'Inativo'}</span>
+          </div>
+        </div>
+        ${botaoMenu(d.linha)}
+      </div>
+    `;
+  }).join('');
 }
+
+// ============ MENU DE AÇÕES (três pontinhos) ============
+let menuLinha = null;
+
+function abrirMenu(ev, linha) {
+  ev.stopPropagation();
+  const menu = document.getElementById('menuAcoes');
+  if (!menu.classList.contains('oculto') && menuLinha === linha) { fecharMenu(); return; }
+  menuLinha = linha;
+  menu.classList.remove('oculto');
+  const r = ev.currentTarget.getBoundingClientRect();
+  const w = menu.offsetWidth, h = menu.offsetHeight;
+  const left = Math.min(Math.max(8, r.right - w), window.innerWidth - w - 8);
+  let top = r.bottom + 4;
+  if (top + h > window.innerHeight - 8) top = Math.max(8, r.top - h - 4);
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
+}
+
+function fecharMenu() {
+  document.getElementById('menuAcoes').classList.add('oculto');
+  menuLinha = null;
+}
+
+function acaoMenu(tipo) {
+  const linha = menuLinha;
+  fecharMenu();
+  if (linha === null) return;
+  if (tipo === 'editar') editar(linha);
+  else if (tipo === 'excluir') excluir(linha);
+}
+
+document.addEventListener('click', e => { if (!e.target.closest('#menuAcoes')) fecharMenu(); });
+window.addEventListener('scroll', fecharMenu, true);
+window.addEventListener('resize', fecharMenu);
 
 // ============ MODAL ============
 function abrirModal() { document.getElementById('modal').classList.remove('oculto'); }
