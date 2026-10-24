@@ -1305,11 +1305,11 @@
       }
 
       .header-logo span {
-        font-size: 0.95rem !important;
+        font-size: clamp(0.8rem, 4.4vw, 1rem) !important;
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 140px;
+        overflow: visible;
+        text-overflow: clip;
+        max-width: none;
       }
 
       .header-actions {
