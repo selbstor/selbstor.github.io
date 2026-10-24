@@ -620,6 +620,24 @@
       color: var(--white);
     }
 
+    .btn-details.btn-shopee:hover {
+      background: #EE4D2D;
+      border-color: #EE4D2D;
+      color: #fff;
+    }
+
+    .btn-details.btn-amazon:hover {
+      background: #000;
+      border-color: #000;
+      color: #fff;
+    }
+
+    .btn-details.btn-meli:hover {
+      background: #FFE600;
+      border-color: #FFE600;
+      color: #2D3277;
+    }
+
     .no-results {
       grid-column: 1 / -1;
       text-align: center;
@@ -1902,6 +1920,14 @@
     var MELI_SVG = '<svg class="ico-meli" viewBox="0 0 40 26" aria-hidden="true"><ellipse cx="20" cy="13" rx="19" ry="12" fill="#FFE600" stroke="#2D3277" stroke-width="2"/><path d="M6.5 10.2l4.5-1.4v8.4l-4.5-1.4z" fill="#2D3277"/><path d="M33.5 10.2l-4.5-1.4v8.4l4.5-1.4z" fill="#2D3277"/><path d="M11 9l5-1.6q4-1 7 .6l6 1.4v7.2l-5 2.2q-3.5 1-6.5-.4L11 16.8z" fill="#2D3277"/><path d="M15.5 13.5l3.2 3.4M19 12l3.6 3.8M22.6 11l3.2 3.4" stroke="#FFE600" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>';
     var PLAY_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.53.85l10-6.5a1 1 0 0 0 0-1.7l-10-6.5A1 1 0 0 0 8 5.5z"/></svg>';
 
+    function platformKey(p) {
+      var nome = (p.plataforma || '').toLowerCase();
+      if (nome.indexOf('shopee') !== -1) return 'shopee';
+      if (nome.indexOf('amazon') !== -1) return 'amazon';
+      if (nome.indexOf('mercado') !== -1 || nome.indexOf('meli') !== -1) return 'meli';
+      return '';
+    }
+
     function platformBadgeHTML(p) {
       if (!p.plataforma) return '';
       var nome = p.plataforma.toLowerCase();
@@ -1949,7 +1975,7 @@
         '<div class="product-name">' + p.nome + '</div>' +
         priceHTML +
         // 🔥 ALTERAÇÃO AQUI: Botão transformado em link direto para o link de afiliado
-        '<a href="' + p.linkAfiliado + '" target="_blank" rel="noopener noreferrer" class="btn-details" style="display:flex;align-items:center;justify-content:center;text-decoration:none;" onclick="event.stopPropagation(); registrarClique(PRODUCTS[' + idx + ']);">COMPRAR</a>' +
+        '<a href="' + p.linkAfiliado + '" target="_blank" rel="noopener noreferrer" class="btn-details' + (platformKey(p) ? ' btn-' + platformKey(p) : '') + '" style="display:flex;align-items:center;justify-content:center;text-decoration:none;" onclick="event.stopPropagation(); registrarClique(PRODUCTS[' + idx + ']);">COMPRAR</a>' +
         '</div></div>';
     }
 
