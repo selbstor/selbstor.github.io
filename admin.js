@@ -18,6 +18,7 @@ async function carregarProdutos() {
     let texto = await resp.text();
     if (texto.charCodeAt(0) === 0xFEFF) texto = texto.slice(1); // Remove BOM
     produtos = parseCSV(texto);
+    atualizarFiltroCategorias();
     renderizarTabela();
   } catch (e) {
     console.error('Erro:', e);
@@ -94,9 +95,20 @@ function escapeHtml(s) {
   }[c]));
 }
 
+// ============ FILTRO DE CATEGORIAS ============
+function atualizarFiltroCategorias() {
+  const sel = document.getElementById('filtroCategoria');
+  const atual = sel.value;
+  const cats = [...new Set(produtos.map(p => (get(p, 'Categoria') || '').trim()).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  sel.innerHTML = '<option value="">Todas as categorias</option>' +
+    cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  sel.value = cats.includes(atual) ? atual : '';
+}
+
 // ============ MENSAGEM (tabela + cards) ============
 function mostrarMensagem(msg) {
-  document.getElementById('corpoTabela').innerHTML = `<tr><td colspan="7" class="vazio">${escapeHtml(msg)}</td></tr>`;
+  document.getElementById('corpoTabela').innerHTML = `<tr><td colspan="6" class="vazio">${escapeHtml(msg)}</td></tr>`;
   document.getElementById('listaCards').innerHTML = `<div class="vazio">${escapeHtml(msg)}</div>`;
 }
 
@@ -104,6 +116,7 @@ function mostrarMensagem(msg) {
 function renderizarTabela() {
   const busca = (document.getElementById('busca').value || '').toLowerCase();
   const filtro = document.getElementById('filtroStatus').value;
+  const filtroCat = document.getElementById('filtroCategoria').value;
   const corpo = document.getElementById('corpoTabela');
   const cards = document.getElementById('listaCards');
 
@@ -113,7 +126,8 @@ function renderizarTabela() {
     const ativo = get(p, 'Ativo');
     const matchBusca = !busca || nome.includes(busca) || cat.includes(busca);
     const matchStatus = !filtro || ativo === filtro;
-    return matchBusca && matchStatus;
+    const matchCat = !filtroCat || (get(p, 'Categoria') || '').trim() === filtroCat;
+    return matchBusca && matchStatus && matchCat;
   });
 
   if (filtrados.length === 0) {
@@ -126,7 +140,6 @@ function renderizarTabela() {
     nome: get(p, 'Nome') || '(sem nome)',
     img: (get(p, 'Imagem 1', 'Imagem') || '').trim(),
     cat: get(p, 'Categoria') || '-',
-    preco: get(p, 'Preço') || '0',
     destaque: get(p, 'Destaque') || 'Não',
     ativo: get(p, 'Ativo') || 'Sim'
   }));
@@ -144,7 +157,6 @@ function renderizarTabela() {
         <td>${imgHtml}</td>
         <td><strong>${escapeHtml(d.nome)}</strong></td>
         <td>${escapeHtml(d.cat)}</td>
-        <td>R$ ${escapeHtml(d.preco)}</td>
         <td><span class="badge badge-${d.destaque === 'Sim' ? 'destaque' : 'nao'}">${escapeHtml(d.destaque)}</span></td>
         <td><span class="badge badge-${d.ativo === 'Sim' ? 'sim' : 'nao'}">${escapeHtml(d.ativo)}</span></td>
         <td class="acoes">${botaoMenu(d.linha)}</td>
@@ -163,7 +175,6 @@ function renderizarTabela() {
         <div class="card-info">
           <div class="card-nome">${escapeHtml(d.nome)}</div>
           <div class="card-cat">${escapeHtml(d.cat)}</div>
-          <div class="card-preco">R$ ${escapeHtml(d.preco)}</div>
           <div class="card-badges">
             <span class="badge badge-${d.destaque === 'Sim' ? 'destaque' : 'nao'}">${d.destaque === 'Sim' ? '★ Destaque' : 'Sem destaque'}</span>
             <span class="badge badge-${d.ativo === 'Sim' ? 'sim' : 'nao'}">${d.ativo === 'Sim' ? 'Ativo' : 'Inativo'}</span>
@@ -369,6 +380,7 @@ document.getElementById('btnNovo').onclick = novoProduto;
 document.getElementById('btnRecarregar').onclick = carregarProdutos;
 document.getElementById('busca').oninput = renderizarTabela;
 document.getElementById('filtroStatus').onchange = renderizarTabela;
+document.getElementById('filtroCategoria').onchange = renderizarTabela;
 
 // Inicializa
 carregarProdutos();
