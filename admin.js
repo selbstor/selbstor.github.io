@@ -111,6 +111,12 @@ function atualizarFiltroCategorias() {
   sel.value = cats.includes(atual) ? atual : '';
 }
 
+// ============ IMAGEM COM LINK DE AFILIADO ============
+function comLink(html, link) {
+  if (!/^https?:\/\//i.test(link || '')) return html;
+  return `<a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer" title="Abrir link de afiliado">${html}</a>`;
+}
+
 // ============ MENSAGEM (tabela + cards) ============
 function mostrarMensagem(msg) {
   document.getElementById('corpoTabela').innerHTML = `<tr><td colspan="7" class="vazio">${escapeHtml(msg)}</td></tr>`;
@@ -145,6 +151,7 @@ function renderizarTabela() {
     nome: get(p, 'Nome') || '(sem nome)',
     img: (get(p, 'Imagem 1', 'Imagem') || '').trim(),
     plat: get(p, 'Plataforma') || '',
+    link: (get(p, 'Link de Afiliado', 'Link') || '').trim(),
     cat: get(p, 'Categoria') || '-',
     destaque: get(p, 'Destaque') || 'Não',
     ativo: get(p, 'Ativo') || 'Sim'
@@ -160,7 +167,7 @@ function renderizarTabela() {
       : '—';
     return `
       <tr>
-        <td>${imgHtml}</td>
+        <td>${comLink(imgHtml, d.link)}</td>
         <td><strong>${escapeHtml(d.nome)}</strong></td>
         <td>${escapeHtml(d.plat || '-')}</td>
         <td>${escapeHtml(d.cat)}</td>
@@ -178,7 +185,7 @@ function renderizarTabela() {
       : '🛍️';
     return `
       <div class="card-produto">
-        <div class="card-img">${imgHtml}</div>
+        <div class="card-img">${comLink(imgHtml, d.link)}</div>
         <div class="card-info">
           <div class="card-nome">${escapeHtml(d.nome)}</div>
           <div class="card-cat">${escapeHtml(d.plat ? d.plat + ' · ' + d.cat : d.cat)}</div>
