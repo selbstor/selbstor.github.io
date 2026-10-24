@@ -2367,7 +2367,7 @@
       var hoje = d.getFullYear() + ('0' + (d.getMonth() + 1)).slice(-2) + ('0' + d.getDate()).slice(-2);
       var emailOk = CONFIG.email && email === String(CONFIG.email).trim().toLowerCase();
       if (emailOk && senha === hoje) {
-        window.location.href = 'https://selbstor.github.io/admin/index.html';
+        window.location.href = 'https://selbstor.github.io/admin/';
       } else {
         document.getElementById('adminErro').classList.add('show');
       }
