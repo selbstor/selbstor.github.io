@@ -925,10 +925,28 @@
       box-shadow: 0 2px 6px rgba(238, 77, 45, 0.35);
     }
 
+    .badge-platform.badge-amazon {
+      background: #000;
+      color: #fff;
+      backdrop-filter: none;
+    }
+
+    .badge-platform.badge-meli {
+      background: #FFE600;
+      color: #2D3277;
+      backdrop-filter: none;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+    }
+
     .badge-platform svg {
       width: 14px;
       height: 14px;
       flex-shrink: 0;
+    }
+
+    .badge-platform svg.ico-meli {
+      width: 22px;
+      height: 14px;
     }
 
     .video-btn {
@@ -1875,12 +1893,18 @@
     function filterProducts() { renderProducts(); }
 
     var SHOPEE_BAG_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V6.5a5 5 0 0 1 10 0V8" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><path d="M3.5 8h17l-1 13h-15z" fill="#fff"/><text x="12" y="18" font-size="10.5" font-weight="800" text-anchor="middle" fill="#EE4D2D" font-family="Arial,sans-serif">S</text></svg>';
+    var AMAZON_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="#fff"/><path d="M5.6 13.4c3.9 3.1 9 3.1 12.8 0" fill="none" stroke="#FF9900" stroke-width="2.2" stroke-linecap="round"/><path d="M19.6 11.2l-.5 4.2-3.6-1.9z" fill="#FF9900"/></svg>';
+    var MELI_SVG = '<svg class="ico-meli" viewBox="0 0 32 20" aria-hidden="true"><ellipse cx="16" cy="10" rx="15" ry="9" fill="#FFE600" stroke="#2D3277" stroke-width="1.4"/><rect x="4.5" y="7" width="3.2" height="7" rx=".6" fill="#2D3277"/><rect x="24.3" y="7" width="3.2" height="7" rx=".6" fill="#2D3277"/><path d="M7.7 8.2L12.5 6.2 16 8l3.5-1.8 4.8 2v5l-4.6 2.4L16 14.2l-3.7 1.4-4.6-2.4z" fill="#2D3277"/><path d="M12 9.2l2.3 3.2M15.6 9l2.2 3.4M19 9.4l1.8 2.8" stroke="#FFE600" stroke-width=".9" stroke-linecap="round"/></svg>';
     var PLAY_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.53.85l10-6.5a1 1 0 0 0 0-1.7l-10-6.5A1 1 0 0 0 8 5.5z"/></svg>';
 
     function platformBadgeHTML(p) {
       if (!p.plataforma) return '';
-      var isShopee = p.plataforma.toLowerCase().indexOf('shopee') !== -1;
-      return '<span class="badge-platform' + (isShopee ? ' badge-shopee' : '') + '">' + (isShopee ? SHOPEE_BAG_SVG : '') + p.plataforma + '</span>';
+      var nome = p.plataforma.toLowerCase();
+      var cls = '', icone = '';
+      if (nome.indexOf('shopee') !== -1) { cls = ' badge-shopee'; icone = SHOPEE_BAG_SVG; }
+      else if (nome.indexOf('amazon') !== -1) { cls = ' badge-amazon'; icone = AMAZON_SVG; }
+      else if (nome.indexOf('mercado') !== -1 || nome.indexOf('meli') !== -1) { cls = ' badge-meli'; icone = MELI_SVG; }
+      return '<span class="badge-platform' + cls + '">' + icone + p.plataforma + '</span>';
     }
 
     function videoUrlFix(u) {
