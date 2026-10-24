@@ -975,6 +975,13 @@
       margin-left: 1px;
     }
 
+    .video-btn.video-btn-off,
+    .video-btn.video-btn-off:hover {
+      cursor: default;
+      transform: none;
+      background: rgba(0, 0, 0, 0.72);
+    }
+
     @media (max-width: 480px) {
       .video-btn { font-size: 0.58rem; gap: 5px; padding-left: 8px; }
       .video-btn .video-play { width: 22px; height: 22px; }
@@ -1889,8 +1896,8 @@
       if (url) {
         return '<a class="video-btn" href="' + url + '" target="_blank" rel="noopener noreferrer" title="Assistir vídeo demonstrativo" onclick="event.stopPropagation();">' + inner + '</a>';
       }
-      // Sem link na planilha: o botão aparece igual, mas abre os detalhes do produto
-      return '<span class="video-btn" title="Ver detalhes do produto">' + inner + '</span>';
+      // Sem link na planilha: o botão aparece, mas não faz nada ao clicar
+      return '<span class="video-btn video-btn-off" onclick="event.stopPropagation();">' + inner + '</span>';
     }
 
     function productCardHTML(p) {
