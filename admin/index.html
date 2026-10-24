@@ -298,12 +298,12 @@
       s.onerror = function () { carregar(lista.slice(1), depois); };
       document.body.appendChild(s);
     }
-    carregar(['../config.js', '../config.js'], function (ok) {
+    carregar(['config.js', '../config.js'], function (ok) {
       if (!ok) {
         document.body.insertAdjacentHTML('afterbegin', '<div style="padding:12px;background:#fee2e2;color:#991b1b;font:14px sans-serif">Não foi possível carregar o config.js. Verifique se ele está em /admin/ ou na raiz do site.</div>');
         return;
       }
-      carregar(['../admin.js', '../admin.js']);
+      carregar(['admin.js', '../admin.js']);
     });
   })();
 </script>
