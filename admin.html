@@ -98,19 +98,28 @@
   .preview-box.oculto { display: none; }
   .preview-box img { display: block; max-width: 100%; max-height: 180px; border-radius: 8px; border: 1px solid #eee; background: #f1f3f5; }
 
+  /* ===== Busca + recarregar (mobile) e total ===== */
+  .busca-linha { display: flex; gap: 10px; flex: 1; min-width: 200px; }
+  .filtros .busca-linha input { flex: 1; min-width: 0; }
+  .btn-recarregar-mobile { display: none; flex-shrink: 0; }
+  .total-produtos { text-align: center; color: #888; font-size: 0.9rem; padding: 16px 0 4px; }
+
   @media (max-width: 700px) {
     body { padding: 12px; }
     .form-linha { grid-template-columns: 1fr; }
     .filtros select { flex: 1; min-width: 140px; }
     table { display: none; }
     .cards { display: flex; }
+    .busca-linha { flex: 1 1 100%; }
+    .btn-recarregar-mobile { display: inline-block; }
+    #btnRecarregar { display: none; }
   }
 </style>
 </head>
 <body>
 <div class="container">
   <header>
-    <h1>🛍️ Gerenciador Produtos</h1>
+    <h1>🛍️ Gerenciador de Produtos</h1>
     <div class="acoes-topo">
       <button id="btnNovo" class="btn btn-primary">+ Novo</button>
       <button id="btnRecarregar" class="btn btn-secondary" title="Recarregar" aria-label="Recarregar">🔄</button>
@@ -118,7 +127,10 @@
   </header>
   
   <div class="filtros">
-    <input type="text" id="busca" placeholder="🔍 Buscar por nome ou categoria...">
+    <div class="busca-linha">
+      <input type="text" id="busca" placeholder="🔍 Buscar por nome ou categoria...">
+      <button type="button" id="btnRecarregarMobile" class="btn btn-secondary btn-recarregar-mobile" title="Recarregar" aria-label="Recarregar">🔄</button>
+    </div>
     <select id="filtroStatus">
       <option value="">Todos os status</option>
       <option value="Sim">Ativos</option>
@@ -146,6 +158,8 @@
 
   <!-- Cards (visíveis só no celular) -->
   <div id="listaCards" class="cards"></div>
+
+  <div id="totalProdutos" class="total-produtos"></div>
 </div>
 
 <!-- MODAL DE PRODUTO SIMPLIFICADO -->
