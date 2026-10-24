@@ -286,8 +286,27 @@
 <div id="toast" class="toast oculto"></div>
 
 <!-- Scripts -->
-<script src="config.js"></script>
-<script src="admin.js"></script>
+<script>
+  // Carrega o config.js e o admin.js tentando primeiro a pasta atual e depois a pasta acima (/),
+  // porque esta página agora fica em /admin/index.html
+  (function () {
+    function carregar(lista, depois) {
+      if (!lista.length) { if (depois) depois(false); return; }
+      var s = document.createElement('script');
+      s.src = lista[0] + '?_t=' + Date.now();
+      s.onload = function () { if (depois) depois(true); };
+      s.onerror = function () { carregar(lista.slice(1), depois); };
+      document.body.appendChild(s);
+    }
+    carregar(['config.js', '../config.js'], function (ok) {
+      if (!ok) {
+        document.body.insertAdjacentHTML('afterbegin', '<div style="padding:12px;background:#fee2e2;color:#991b1b;font:14px sans-serif">Não foi possível carregar o config.js. Verifique se ele está em /admin/ ou na raiz do site.</div>');
+        return;
+      }
+      carregar(['admin.js', '../admin.js']);
+    });
+  })();
+</script>
 </body>
 </html>
 
