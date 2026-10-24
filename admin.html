@@ -75,6 +75,27 @@
   .card-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
   .cards .vazio { background: white; border-radius: 12px; }
 
+  /* ===== Combobox de categoria ===== */
+  .combo { position: relative; }
+  .form-grupo .combo input { padding-right: 40px; }
+  .combo-seta { position: absolute; right: 0; top: 0; height: 100%; width: 40px; border: none; background: transparent; cursor: pointer; font-size: 1rem; color: #666; }
+  .combo-lista { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 50; background: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 6px 16px rgba(0,0,0,0.15); max-height: 200px; overflow-y: auto; }
+  .combo-lista.oculto { display: none; }
+  .combo-opcao, .combo-nova, .combo-vazio { padding: 10px 12px; font-size: 0.9rem; }
+  .combo-opcao { cursor: pointer; }
+  .combo-opcao:hover, .combo-opcao:active { background: #f1f3f5; }
+  .combo-nova, .combo-vazio { color: #888; border-top: 1px solid #eee; }
+
+  /* ===== Upload de imagem ===== */
+  .upload-linha { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .form-grupo label.btn-upload { display: inline-block; margin: 0; font-size: 0.85rem; color: #2c3e50; cursor: pointer; }
+  .nome-arquivo { font-size: 0.8rem; color: #888; word-break: break-all; }
+  .form-grupo input.input-arquivo { position: absolute; width: 1px; height: 1px; padding: 0; opacity: 0; pointer-events: none; }
+  .form-grupo input.input-link-img { margin-top: 10px; }
+  .preview-box { margin-top: 10px; }
+  .preview-box.oculto { display: none; }
+  .preview-box img { display: block; max-width: 100%; max-height: 180px; border-radius: 8px; border: 1px solid #eee; background: #f1f3f5; }
+
   @media (max-width: 700px) {
     body { padding: 12px; }
     .form-linha { grid-template-columns: 1fr; }
@@ -111,13 +132,14 @@
       <tr>
         <th>Imagem</th>
         <th>Nome</th>
+        <th>Plataforma</th>
         <th>Categoria</th>
         <th>Destaque</th>
         <th>Ativo</th>
         <th class="col-acoes">Ações</th>
       </tr>
     </thead>
-    <tbody id="corpoTabela"><tr><td colspan="6" class="vazio">Carregando produtos...</td></tr></tbody>
+    <tbody id="corpoTabela"><tr><td colspan="7" class="vazio">Carregando produtos...</td></tr></tbody>
   </table>
 
   <!-- Cards (visíveis só no celular) -->
@@ -148,7 +170,13 @@
           <div class="form-grupo"><label>Plataforma</label><input type="text" id="plataforma" placeholder="Ex: Amazon, Shopee"></div>
         </div>
         <div class="form-linha">
-          <div class="form-grupo"><label>Categoria</label><input type="text" id="categoria"></div>
+          <div class="form-grupo"><label>Categoria</label>
+            <div class="combo" id="comboCategoria">
+              <input type="text" id="categoria" autocomplete="off" placeholder="Selecione ou digite">
+              <button type="button" class="combo-seta" id="comboSeta" aria-label="Mostrar categorias">▾</button>
+              <div class="combo-lista oculto" id="listaCategorias"></div>
+            </div>
+          </div>
           <div class="form-grupo"><label>Subcategoria</label><input type="text" id="subcategoria"></div>
         </div>
       </div>
@@ -175,7 +203,16 @@
 
       <div class="form-secao">
         <h3>🖼️ Imagens e Mídia</h3>
-        <div class="form-grupo"><label>Imagem 1 (principal) *</label><input type="url" id="imagem1" required></div>
+        <div class="form-grupo">
+          <label>Imagem *</label>
+          <div class="upload-linha">
+            <label for="imagemArquivo" class="btn btn-secondary btn-sm btn-upload">📁 Escolher imagem</label>
+            <span id="nomeArquivo" class="nome-arquivo">Nenhuma imagem selecionada</span>
+            <input type="file" id="imagemArquivo" accept="image/*" class="input-arquivo">
+          </div>
+          <div id="previewBox" class="preview-box oculto"><img id="imagemPreview" alt="Pré-visualização"></div>
+          <input type="url" id="imagem1" class="input-link-img" placeholder="Ou cole o link da imagem (https://...)">
+        </div>
         
         <!-- ✅ CAMPOS OCULTOS: Imagens 2, 3, 4 e Vídeo -->
         <div class="form-linha campo-oculto">
