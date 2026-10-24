@@ -95,12 +95,17 @@ function escapeHtml(s) {
   }[c]));
 }
 
+// ============ CATEGORIAS (lista única) ============
+function listarCategorias() {
+  return [...new Set(produtos.map(p => (get(p, 'Categoria') || '').trim()).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+}
+
 // ============ FILTRO DE CATEGORIAS ============
 function atualizarFiltroCategorias() {
   const sel = document.getElementById('filtroCategoria');
   const atual = sel.value;
-  const cats = [...new Set(produtos.map(p => (get(p, 'Categoria') || '').trim()).filter(Boolean))]
-    .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  const cats = listarCategorias();
   sel.innerHTML = '<option value="">Todas as categorias</option>' +
     cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
   sel.value = cats.includes(atual) ? atual : '';
@@ -108,7 +113,7 @@ function atualizarFiltroCategorias() {
 
 // ============ MENSAGEM (tabela + cards) ============
 function mostrarMensagem(msg) {
-  document.getElementById('corpoTabela').innerHTML = `<tr><td colspan="6" class="vazio">${escapeHtml(msg)}</td></tr>`;
+  document.getElementById('corpoTabela').innerHTML = `<tr><td colspan="7" class="vazio">${escapeHtml(msg)}</td></tr>`;
   document.getElementById('listaCards').innerHTML = `<div class="vazio">${escapeHtml(msg)}</div>`;
 }
 
@@ -139,6 +144,7 @@ function renderizarTabela() {
     linha: p._linha,
     nome: get(p, 'Nome') || '(sem nome)',
     img: (get(p, 'Imagem 1', 'Imagem') || '').trim(),
+    plat: get(p, 'Plataforma') || '',
     cat: get(p, 'Categoria') || '-',
     destaque: get(p, 'Destaque') || 'Não',
     ativo: get(p, 'Ativo') || 'Sim'
@@ -156,6 +162,7 @@ function renderizarTabela() {
       <tr>
         <td>${imgHtml}</td>
         <td><strong>${escapeHtml(d.nome)}</strong></td>
+        <td>${escapeHtml(d.plat || '-')}</td>
         <td>${escapeHtml(d.cat)}</td>
         <td><span class="badge badge-${d.destaque === 'Sim' ? 'destaque' : 'nao'}">${escapeHtml(d.destaque)}</span></td>
         <td><span class="badge badge-${d.ativo === 'Sim' ? 'sim' : 'nao'}">${escapeHtml(d.ativo)}</span></td>
@@ -174,7 +181,7 @@ function renderizarTabela() {
         <div class="card-img">${imgHtml}</div>
         <div class="card-info">
           <div class="card-nome">${escapeHtml(d.nome)}</div>
-          <div class="card-cat">${escapeHtml(d.cat)}</div>
+          <div class="card-cat">${escapeHtml(d.plat ? d.plat + ' · ' + d.cat : d.cat)}</div>
           <div class="card-badges">
             <span class="badge badge-${d.destaque === 'Sim' ? 'destaque' : 'nao'}">${d.destaque === 'Sim' ? '★ Destaque' : 'Sem destaque'}</span>
             <span class="badge badge-${d.ativo === 'Sim' ? 'sim' : 'nao'}">${d.ativo === 'Sim' ? 'Ativo' : 'Inativo'}</span>
@@ -263,6 +270,8 @@ function editar(linha) {
   document.getElementById('video').value = get(p, 'Vídeo (URL YouTube)', 'Vídeo') || '';
   
   document.getElementById('imagem1').value = get(p, 'Imagem 1', 'Imagem') || '';
+  limparArquivoImagem();
+  mostrarPreview(document.getElementById('imagem1').value.trim());
   document.getElementById('imagem2').value = get(p, 'Imagem 2') || '';
   document.getElementById('imagem3').value = get(p, 'Imagem 3') || '';
   document.getElementById('imagem4').value = get(p, 'Imagem 4') || '';  
@@ -276,7 +285,32 @@ function editar(linha) {
 // ============ SALVAR ============
 document.getElementById('formProduto').addEventListener('submit', async (e) => {
   e.preventDefault();
+  const btnSalvar = document.querySelector('#formProduto button[type="submit"]');
+  if (btnSalvar.disabled) return;
+  btnSalvar.disabled = true;
+  try { await salvarProduto(); } finally { btnSalvar.disabled = false; }
+});
+
+async function salvarProduto() {
   const linha = document.getElementById('campoLinha').value;
+
+  // Imagem: se escolheu um arquivo, envia primeiro e usa o link gerado
+  let urlImagem = document.getElementById('imagem1').value.trim();
+  const arquivo = document.getElementById('imagemArquivo').files[0];
+  if (!arquivo && !urlImagem) {
+    toast('❌ Escolha uma imagem para o produto.', 'erro');
+    return;
+  }
+  if (arquivo) {
+    try {
+      toast('📤 Enviando imagem...', '');
+      urlImagem = await enviarImagem(arquivo);
+    } catch (err) {
+      console.error(err);
+      toast('❌ ' + err.message, 'erro');
+      return;
+    }
+  }
   
   // ✅ CORRIGIDO: Objeto com TODAS as 20 colunas exatas da planilha
   const produto = {
@@ -294,7 +328,7 @@ document.getElementById('formProduto').addEventListener('submit', async (e) => {
     'Link de Afiliado': document.getElementById('link').value.trim(),
     'Texto do Botão': document.getElementById('textoBotao').value.trim(),
     'Vídeo (URL YouTube)': document.getElementById('video').value.trim(),
-    'Imagem 1': document.getElementById('imagem1').value.trim(),
+    'Imagem 1': urlImagem,
     'Imagem 2': document.getElementById('imagem2').value.trim(),
     'Imagem 3': document.getElementById('imagem3').value.trim(),
     'Imagem 4': document.getElementById('imagem4').value.trim(),
@@ -333,7 +367,7 @@ document.getElementById('formProduto').addEventListener('submit', async (e) => {
     console.error(err);
     toast('❌ Erro de rede: ' + err.message, 'erro');
   }
-});
+}
 
 // ============ EXCLUIR ============
 async function excluir(linha) {
@@ -375,12 +409,157 @@ function toast(msg, tipo) {
   setTimeout(() => t.classList.add('oculto'), 3500);
 }
 
+// ============ COMBOBOX DE CATEGORIA ============
+function normalizar(s) {
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function renderizarOpcoesCategoria() {
+  const lista = document.getElementById('listaCategorias');
+  const digitado = document.getElementById('categoria').value.trim();
+  const termo = normalizar(digitado);
+  const todas = listarCategorias();
+  const filtradas = termo ? todas.filter(c => normalizar(c).includes(termo)) : todas;
+  let html = filtradas.map(c => `<div class="combo-opcao" data-valor="${escapeHtml(c)}">${escapeHtml(c)}</div>`).join('');
+  if (termo && !todas.some(c => normalizar(c) === termo)) {
+    html += `<div class="combo-nova">➕ Nova categoria: <strong>${escapeHtml(digitado)}</strong></div>`;
+  }
+  if (!html) html = '<div class="combo-vazio">Nenhuma categoria cadastrada</div>';
+  lista.innerHTML = html;
+}
+
+function abrirComboCategoria() {
+  renderizarOpcoesCategoria();
+  document.getElementById('listaCategorias').classList.remove('oculto');
+}
+function fecharComboCategoria() {
+  document.getElementById('listaCategorias').classList.add('oculto');
+}
+function alternarComboCategoria() {
+  const lista = document.getElementById('listaCategorias');
+  if (lista.classList.contains('oculto')) abrirComboCategoria(); else fecharComboCategoria();
+}
+
+// ============ IMAGEM (galeria / arquivo local) ============
+let urlPreviaTemp = null;
+
+function mostrarPreview(src) {
+  const img = document.getElementById('imagemPreview');
+  const box = document.getElementById('previewBox');
+  if (src) {
+    img.onerror = () => box.classList.add('oculto');
+    img.onload = () => box.classList.remove('oculto');
+    img.src = src;
+  } else {
+    img.removeAttribute('src');
+    box.classList.add('oculto');
+  }
+}
+
+function limparArquivoImagem() {
+  document.getElementById('imagemArquivo').value = '';
+  document.getElementById('nomeArquivo').textContent = 'Nenhuma imagem selecionada';
+  if (urlPreviaTemp) { URL.revokeObjectURL(urlPreviaTemp); urlPreviaTemp = null; }
+}
+
+// Reduz a foto (máx. 1000px) e converte para JPEG, devolvendo só o base64
+async function redimensionarImagem(arquivo, max = 1000, qualidade = 0.85) {
+  const url = URL.createObjectURL(arquivo);
+  try {
+    const img = await new Promise((ok, erro) => {
+      const i = new Image();
+      i.onload = () => ok(i);
+      i.onerror = () => erro(new Error('Não foi possível ler a imagem escolhida.'));
+      i.src = url;
+    });
+    const escala = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.round(img.naturalWidth * escala);
+    const h = Math.round(img.naturalHeight * escala);
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+    return canvas.toDataURL('image/jpeg', qualidade).split(',')[1];
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+// Envia para o Apps Script (que salva no Drive) e devolve o link público da imagem
+async function enviarImagem(arquivo) {
+  const base64 = await redimensionarImagem(arquivo);
+  const resp = await fetch(URL_GRAVAR_PRODUTOS, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+      acao: 'uploadImagem',
+      nome: 'produto_' + Date.now() + '.jpg',
+      tipo: 'image/jpeg',
+      base64: base64
+    })
+  });
+  const texto = await resp.text();
+  let json;
+  try { json = JSON.parse(texto); }
+  catch (e) { throw new Error('O servidor não aceitou o envio da imagem. Atualize o Apps Script (upload-imagem.gs).'); }
+  if (!json.ok || !json.url) throw new Error(json.msg || 'Falha ao enviar a imagem.');
+  return json.url;
+}
+
 // ============ EVENTOS ============
 document.getElementById('btnNovo').onclick = novoProduto;
 document.getElementById('btnRecarregar').onclick = carregarProdutos;
 document.getElementById('busca').oninput = renderizarTabela;
 document.getElementById('filtroStatus').onchange = renderizarTabela;
 document.getElementById('filtroCategoria').onchange = renderizarTabela;
+
+// Combobox de categoria
+const campoCategoria = document.getElementById('categoria');
+campoCategoria.addEventListener('focus', abrirComboCategoria);
+campoCategoria.addEventListener('click', abrirComboCategoria);
+campoCategoria.addEventListener('input', abrirComboCategoria);
+document.getElementById('comboSeta').addEventListener('click', alternarComboCategoria);
+document.getElementById('listaCategorias').addEventListener('click', e => {
+  const op = e.target.closest('.combo-opcao');
+  if (op) campoCategoria.value = op.dataset.valor;
+  fecharComboCategoria();
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('#comboCategoria')) fecharComboCategoria();
+});
+
+// Imagem
+document.getElementById('imagemArquivo').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (urlPreviaTemp) { URL.revokeObjectURL(urlPreviaTemp); urlPreviaTemp = null; }
+  if (!f) {
+    document.getElementById('nomeArquivo').textContent = 'Nenhuma imagem selecionada';
+    mostrarPreview(document.getElementById('imagem1').value.trim());
+    return;
+  }
+  if (!f.type.startsWith('image/')) {
+    toast('❌ Escolha um arquivo de imagem.', 'erro');
+    limparArquivoImagem();
+    return;
+  }
+  urlPreviaTemp = URL.createObjectURL(f);
+  document.getElementById('nomeArquivo').textContent = f.name;
+  mostrarPreview(urlPreviaTemp);
+});
+// Digitar/colar um link substitui a imagem escolhida
+document.getElementById('imagem1').addEventListener('input', e => {
+  limparArquivoImagem();
+  mostrarPreview(e.target.value.trim());
+});
+// Ao limpar o formulário (novo produto / fechar), zera preview e combo
+document.getElementById('formProduto').addEventListener('reset', () => {
+  limparArquivoImagem();
+  mostrarPreview('');
+  fecharComboCategoria();
+});
 
 // Inicializa
 carregarProdutos();
