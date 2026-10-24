@@ -584,5 +584,38 @@ document.getElementById('formProduto').addEventListener('reset', () => {
   fecharComboCategoria();
 });
 
+// ============ BOTÃO X PARA LIMPAR CAMPOS ============
+// O X só aparece quando o campo tem texto (via CSS :placeholder-shown)
+function adicionarBotaoLimpar(input) {
+  if (!input) return;
+  if (!input.getAttribute('placeholder')) input.setAttribute('placeholder', ' ');
+  const wrap = document.createElement('div');
+  wrap.className = 'campo-limpar';
+  input.parentNode.insertBefore(wrap, input);
+  wrap.appendChild(input);
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn-limpar';
+  btn.title = 'Limpar';
+  btn.setAttribute('aria-label', 'Limpar campo');
+  btn.textContent = '×';
+  btn.addEventListener('click', () => {
+    input.value = '';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.focus();
+  });
+  wrap.appendChild(btn);
+}
+
+['busca', 'nome', 'plataforma', 'categoria', 'subcategoria', 'link', 'validade', 'imagem1', 'video']
+  .forEach(id => adicionarBotaoLimpar(document.getElementById(id)));
+
+// X sobre a pré-visualização remove a imagem (arquivo escolhido e/ou link)
+document.getElementById('btnRemoverImagem').addEventListener('click', () => {
+  limparArquivoImagem();
+  document.getElementById('imagem1').value = '';
+  mostrarPreview('');
+});
+
 // Inicializa
 carregarProdutos();
