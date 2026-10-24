@@ -1920,8 +1920,8 @@
       if (url) {
         return '<a class="video-btn" href="' + url + '" target="_blank" rel="noopener noreferrer" title="Assistir vídeo" onclick="event.stopPropagation();">' + inner + '</a>';
       }
-      // Sem link na planilha: o botão aparece, mas não faz nada ao clicar
-      return '<span class="video-btn video-btn-off" onclick="event.stopPropagation();">' + inner + '</span>';
+      // Sem link na planilha: não mostra o botão
+      return '';
     }
 
     function productCardHTML(p) {
