@@ -511,7 +511,7 @@
       overflow: hidden;
       border: 1px solid var(--gray-100);
       transition: var(--transition);
-      cursor: pointer;
+      cursor: default;
       position: relative;
     }
 
@@ -1979,7 +1979,7 @@
         var prefixo = p.tipo !== 'DIGITAL' ? '<span style="font-size:0.72rem;font-weight:500;color:var(--text-muted)">a partir de </span>' : '';
         priceHTML = '<div class="product-price"><span class="price-current">' + prefixo + 'R$ ' + fp(hasPromo ? p.precoPromo : p.preco) + '</span>' + (hasPromo ? '<span class="price-old">R$ ' + fp(p.preco) + '</span>' : '') + '</div>';
       }
-      return '<div class="product-card" onclick="openProductModal(' + idx + ')">' +
+      return '<div class="product-card">' +
         '<div class="product-img-wrap"><img src="' + p.img1 + '" alt="' + p.nome + '" loading="lazy" onerror="handleImgError(this)">' +
         (hasPromo ? '<span class="badge-promo">-' + Math.round((1 - p.precoPromo / p.preco) * 100) + '%</span>' : '') +
         platformBadgeHTML(p) +
