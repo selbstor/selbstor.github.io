@@ -104,6 +104,18 @@
   .btn-recarregar-mobile { display: none; flex-shrink: 0; }
   .total-produtos { text-align: center; color: #888; font-size: 0.9rem; padding: 16px 0 4px; }
 
+  /* ===== Botão X para limpar campos ===== */
+  .campo-limpar { position: relative; display: block; }
+  .campo-limpar input { width: 100%; min-width: 0; padding-right: 36px; }
+  .busca-linha .campo-limpar { flex: 1; min-width: 0; }
+  .btn-limpar { display: none; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; padding: 0; border: none; border-radius: 50%; background: #dfe3e6; color: #555; font-size: 18px; line-height: 1; align-items: center; justify-content: center; cursor: pointer; }
+  .btn-limpar:hover, .btn-limpar:active { background: #c9ced2; }
+  .campo-limpar input:not(:placeholder-shown) ~ .btn-limpar { display: flex; }
+  .combo .campo-limpar input { padding-right: 72px; }
+  .combo .campo-limpar .btn-limpar { right: 40px; }
+  .preview-box { position: relative; display: inline-block; max-width: 100%; }
+  .btn-remover-img { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; padding: 0; border: none; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; font-size: 20px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
   @media (max-width: 700px) {
     body { padding: 12px; }
     .form-linha { grid-template-columns: 1fr; }
@@ -226,7 +238,10 @@
             <span id="nomeArquivo" class="nome-arquivo">Nenhuma imagem selecionada</span>
             <input type="file" id="imagemArquivo" accept="image/*" class="input-arquivo">
           </div>
-          <div id="previewBox" class="preview-box oculto"><img id="imagemPreview" alt="Pré-visualização"></div>
+          <div id="previewBox" class="preview-box oculto">
+            <img id="imagemPreview" alt="Pré-visualização">
+            <button type="button" id="btnRemoverImagem" class="btn-remover-img" aria-label="Remover imagem" title="Remover imagem">×</button>
+          </div>
           <input type="url" id="imagem1" class="input-link-img" placeholder="Ou cole o link da imagem (https://...)">
         </div>
         
