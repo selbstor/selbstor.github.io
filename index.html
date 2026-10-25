@@ -1814,6 +1814,7 @@
         else if (field === 'MENSAGEM MANUTENCAO' || field === 'MENSAGEM MANUTENÇÃO' || field === 'MENSAGEM MANUTENÇAO') cfg.msgManutencao = val;
         else if (field === 'MENSAGEM TOPO' || field === 'BARRA TOPO') cfg.mensagemTopo = val;
         else if (field === 'COR BARRA TOPO' || field === 'COR MENSAGEM TOPO') cfg.corBarraTopo = val;
+        else if (field === 'COR RODAPÉ' || field === 'COR RODAPE' || field === 'COR DO RODAPÉ' || field === 'COR DO RODAPE') cfg.corRodape = val;
         else if (field === 'CNPJ') cfg.cnpj = val;
         else if (field === 'ENDERECO' || field === 'ENDEREÇO' || field === 'ENDERECO DA LOJA' || field === 'ENDEREÇO DA LOJA') cfg.endereco = val;
         else if (field === 'EMAIL' || field === 'EMAIL DE CONTATO') cfg.email = val;
@@ -2040,7 +2041,11 @@
       }
 
       var footerEl = document.getElementById('siteFooter');
-      var footerBg = CONFIG.corSecundaria || '#1B1B1B';
+      // Cor do rodapé: usa o campo "Cor Rodapé" da aba Configurações; se vazio ou inválido, mantém a cor padrão da loja
+      var corRodape = String(CONFIG.corRodape || '').trim();
+      if (/^[0-9a-f]{3}$|^[0-9a-f]{6}$/i.test(corRodape)) corRodape = '#' + corRodape;
+      if (!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(corRodape)) corRodape = '';
+      var footerBg = corRodape || CONFIG.corSecundaria || '#1B1B1B';
       footerEl.style.background = footerBg;
       var light = isLightColor(footerBg);
       var textMain = light ? '#1B1B1B' : '#FFFFFF';
@@ -2359,6 +2364,11 @@
       return m ? 'https://www.youtube.com/embed/' + m[1] : '';
     }
 
+    // endereço do site sem parâmetros (ex.: https://selbstor.github.io/)
+    function urlDoSite() {
+      return window.location.origin + window.location.pathname.split('index.html').join('');
+    }
+
     function registrarClique(p) {
       if (typeof ACHADINHOS === 'undefined' || !ACHADINHOS.registrar_cliques) return;
       try {
@@ -2372,7 +2382,8 @@
           plataforma: p.plataforma,
           tipo: p.tipo,
           categoria: p.categoria,
-          origem: origem
+          origem: origem,
+          site: urlDoSite()
         };
         var url = ACHADINHOS.registrar_cliques + '?data=' + encodeURIComponent(JSON.stringify(dados));
         fetch(url, { mode: 'no-cors' });
@@ -2426,7 +2437,8 @@
           dataHora: new Date().toLocaleString('pt-BR'),
           produto: produto,
           categoria: categoria,
-          plataforma: plataforma
+          plataforma: plataforma,
+          site: urlDoSite()
         };
         var img = new Image();
         img.src = ACHADINHOS.registrar_cliques + '?data=' + encodeURIComponent(JSON.stringify(dados));
