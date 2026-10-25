@@ -2,7 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#f5f7fa">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
 <title>Gerenciar Produtos</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
@@ -126,6 +130,68 @@
     .btn-recarregar-mobile { display: inline-block; }
     #btnRecarregar { display: none; }
   }
+
+  /* ===== Responsividade extra (Android e iPhone) ===== */
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body { -webkit-tap-highlight-color: transparent;
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-right: max(20px, env(safe-area-inset-right));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    padding-left: max(20px, env(safe-area-inset-left)); }
+  input[type=text], input[type=url], input[type=number], input[type=email], textarea { -webkit-appearance: none; appearance: none; }
+  body:has(.modal-overlay:not(.oculto)) { overflow: hidden; }
+  .modal { max-height: 90vh; max-height: 90dvh; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  .toast { max-width: calc(100vw - 32px); }
+
+  @media (max-width: 900px) {
+    th, td { padding: 10px 8px; }
+  }
+
+  @media (max-width: 700px) {
+    body { padding-top: max(12px, env(safe-area-inset-top)); padding-right: max(12px, env(safe-area-inset-right));
+      padding-bottom: max(12px, env(safe-area-inset-bottom)); padding-left: max(12px, env(safe-area-inset-left)); }
+    h1 { font-size: 1.2rem; }
+    header { gap: 8px; }
+    .acoes-topo { width: 100%; }
+    .acoes-topo .btn { flex: 1; }
+    .btn { min-height: 44px; }
+    .btn-sm { min-height: 40px; }
+    .filtros { padding: 12px; }
+    /* 16px evita o zoom automático do iPhone ao tocar nos campos */
+    .filtros input, .filtros select, .form-grupo input, .form-grupo select, .form-grupo textarea { font-size: 16px; min-height: 44px; }
+    .form-grupo textarea { min-height: 90px; }
+    .btn-menu { width: 44px; height: 44px; }
+    .card-produto { padding: 10px; gap: 10px; }
+    .menu-acoes button { min-height: 44px; }
+    .combo-opcao, .combo-nova, .combo-vazio { padding: 13px 12px; font-size: 1rem; }
+    .combo-seta { width: 44px; }
+    .form-grupo .combo input, .combo .campo-limpar input { padding-right: 80px; }
+    .combo .campo-limpar .btn-limpar { right: 44px; }
+
+    /* Formulário vira uma "folha" que sobe de baixo, ocupando quase a tela toda */
+    .modal-overlay { padding: 0; align-items: flex-end; }
+    .modal { max-width: none; border-radius: 16px 16px 0 0; max-height: 94vh; max-height: 94dvh; padding: 0 16px; }
+    .modal-header { position: sticky; top: 0; z-index: 2; background: #fff; margin: 0 -16px 14px; padding: 12px 16px; border-bottom: 1px solid #eee; border-radius: 16px 16px 0 0; }
+    .fechar { width: 44px; height: 44px; font-size: 1.8rem; }
+    .form-secao { padding: 12px; }
+    .form-acoes { position: sticky; bottom: 0; z-index: 2; background: #fff; margin: 16px -16px 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid #eee; }
+    .form-acoes .btn { flex: 1; }
+
+    .toast { left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); text-align: center; }
+  }
+
+  @media (max-width: 380px) {
+    h1 { font-size: 1.05rem; }
+    .card-img { width: 54px; height: 54px; }
+    .card-nome { font-size: 0.9rem; }
+  }
+
+  /* Celular deitado: formulário ocupa a tela inteira */
+  @media (max-height: 500px) and (orientation: landscape) {
+    .modal-overlay { align-items: stretch; }
+    .modal { max-height: 100vh; max-height: 100dvh; border-radius: 0; }
+    .modal-header { border-radius: 0; }
+  }
 </style>
 </head>
 <body>
@@ -213,15 +279,15 @@
       <div class="form-secao campo-oculto">
         <h3>💰 Preços e Cupons</h3>
         <div class="form-linha">
-          <div class="form-grupo"><label>Preço (R$)</label><input type="text" id="preco" placeholder="Ex: 149.90"></div>
-          <div class="form-grupo"><label>Preço Promocional (R$)</label><input type="text" id="precoPromocional" placeholder="Ex: 99.90"></div>
+          <div class="form-grupo"><label>Preço (R$)</label><input type="text" id="preco" inputmode="decimal" placeholder="Ex: 149.90"></div>
+          <div class="form-grupo"><label>Preço Promocional (R$)</label><input type="text" id="precoPromocional" inputmode="decimal" placeholder="Ex: 99.90"></div>
         </div>
         <div class="form-grupo"><label>Cupom de Desconto</label><input type="text" id="cupom" placeholder="Ex: DESCONTO10"></div>
       </div>
 
       <div class="form-secao">
         <h3>🔗 Link e Conversão</h3>
-        <div class="form-grupo"><label>Link de Afiliado *</label><input type="url" id="link" required></div>
+        <div class="form-grupo"><label>Link de Afiliado *</label><input type="url" autocapitalize="off" autocorrect="off" spellcheck="false" id="link" required></div>
         
         <!-- ✅ CAMPO OCULTO: Texto do Botão -->
         <div class="form-grupo campo-oculto"><label>Texto do Botão</label><input type="text" id="textoBotao" placeholder="Ex: Ver oferta na Amazon"></div>
@@ -242,24 +308,24 @@
             <img id="imagemPreview" alt="Pré-visualização">
             <button type="button" id="btnRemoverImagem" class="btn-remover-img" aria-label="Remover imagem" title="Remover imagem">×</button>
           </div>
-          <input type="url" id="imagem1" class="input-link-img" placeholder="Ou cole o link da imagem (https://...)">
+          <input type="url" autocapitalize="off" autocorrect="off" spellcheck="false" id="imagem1" class="input-link-img" placeholder="Ou cole o link da imagem (https://...)">
         </div>
         
         <!-- ✅ CAMPOS OCULTOS: Imagens 2, 3, 4 e Vídeo -->
         <div class="form-linha campo-oculto">
-          <div class="form-grupo"><label>Imagem 2</label><input type="url" id="imagem2"></div>
-          <div class="form-grupo"><label>Imagem 3</label><input type="url" id="imagem3"></div>
+          <div class="form-grupo"><label>Imagem 2</label><input type="url" autocapitalize="off" autocorrect="off" spellcheck="false" id="imagem2"></div>
+          <div class="form-grupo"><label>Imagem 3</label><input type="url" autocapitalize="off" autocorrect="off" spellcheck="false" id="imagem3"></div>
         </div>
-        <div class="form-grupo campo-oculto"><label>Imagem 4</label><input type="url" id="imagem4"></div>
+        <div class="form-grupo campo-oculto"><label>Imagem 4</label><input type="url" autocapitalize="off" autocorrect="off" spellcheck="false" id="imagem4"></div>
 
         <!-- ✅ CAMPO VISÍVEL: Vídeo -->
-        <div class="form-grupo"><label>URL do Vídeo</label><input type="url" id="video" placeholder="https://youtube.com/watch?v=..."></div>
+        <div class="form-grupo"><label>URL do Vídeo</label><input type="url" autocapitalize="off" autocorrect="off" spellcheck="false" id="video" placeholder="https://youtube.com/watch?v=..."></div>
       </div>
 
       <div class="form-secao">
         <h3>⚙️ Configurações</h3>
         <div class="form-linha">
-          <div class="form-grupo"><label>Ordem</label><input type="number" id="ordem" value="0"></div>
+          <div class="form-grupo"><label>Ordem</label><input type="number" id="ordem" inputmode="numeric" value="0"></div>
           <div class="form-grupo"><label>Destaque?</label>
             <select id="destaque"><option value="Não">Não</option><option value="Sim">Sim</option></select>
           </div>
@@ -286,7 +352,27 @@
 <div id="toast" class="toast oculto"></div>
 
 <!-- Scripts -->
-<script src="../config.js"></script>
-<script src="admin.js"></script>
+<script>
+  // Carrega o config.js e o admin.js tentando primeiro a pasta atual e depois a pasta acima (/),
+  // porque esta página agora fica em /admin/index.html
+  (function () {
+    function carregar(lista, depois) {
+      if (!lista.length) { if (depois) depois(false); return; }
+      var s = document.createElement('script');
+      s.src = lista[0] + '?_t=' + Date.now();
+      s.onload = function () { if (depois) depois(true); };
+      s.onerror = function () { carregar(lista.slice(1), depois); };
+      document.body.appendChild(s);
+    }
+    carregar(['config.js', '../config.js'], function (ok) {
+      if (!ok) {
+        document.body.insertAdjacentHTML('afterbegin', '<div style="padding:12px;background:#fee2e2;color:#991b1b;font:14px sans-serif">Não foi possível carregar o config.js. Verifique se ele está em /admin/ ou na raiz do site.</div>');
+        return;
+      }
+      carregar(['admin.js', '../admin.js']);
+    });
+  })();
+</script>
 </body>
 </html>
+
