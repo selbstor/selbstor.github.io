@@ -341,7 +341,19 @@ window.addEventListener('scroll', fecharMenu, true);
 window.addEventListener('resize', fecharMenu);
 
 // ============ MODAL ============
-function abrirModal() { document.getElementById('modal').classList.remove('oculto'); }
+function abrirModal() {
+  const overlay = document.getElementById('modal');
+  overlay.classList.remove('oculto');
+  // Sempre abre mostrando o topo do formulário
+  const topo = () => {
+    overlay.scrollTop = 0;
+    const m = overlay.querySelector('.modal');
+    if (m) m.scrollTop = 0;
+  };
+  topo();
+  requestAnimationFrame(topo);
+  setTimeout(topo, 150);
+}
 function fecharModal() {
   document.getElementById('modal').classList.add('oculto');
   document.getElementById('formProduto').reset();
@@ -699,7 +711,7 @@ function adicionarBotaoLimpar(input) {
   wrap.appendChild(btn);
 }
 
-['busca', 'nome', 'plataforma', 'categoria', 'subcategoria', 'link', 'validade', 'imagem1', 'video']
+['busca', 'nome', 'plataforma', 'categoria', 'subcategoria', 'link', 'validade', 'video']
   .forEach(id => adicionarBotaoLimpar(document.getElementById(id)));
 
 // X sobre a pré-visualização remove a imagem (arquivo escolhido e/ou link)
