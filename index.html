@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Carregando... — Selbstor|Achadinhos</title>
+  <title>Carregando...</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap"
@@ -2049,10 +2049,11 @@
       footerEl.style.background = footerBg;
       var light = isLightColor(footerBg);
       var textMain = light ? '#1B1B1B' : '#FFFFFF';
-      var textMuted = light ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.5)';
-      var textLight = light ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.35)';
-      var iconBg = light ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)';
-      var iconColor = light ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)';
+      // Rodapé escuro/colorido: todos os textos e ícones em branco
+      var textMuted = light ? 'rgba(0,0,0,0.6)' : '#FFFFFF';
+      var textLight = light ? 'rgba(0,0,0,0.4)' : '#FFFFFF';
+      var iconBg = light ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)';
+      var iconColor = light ? 'rgba(0,0,0,0.6)' : '#FFFFFF';
       document.querySelector('.footer-name').style.color = textMain;
       document.querySelector('.footer-credit').style.color = textLight;
       var socialLinks = document.querySelectorAll('.footer-socials a');
@@ -2063,10 +2064,14 @@
         a.addEventListener('mouseleave', function() { this.style.background = iconBg; this.style.color = iconColor; });
       });
       footerEl.style.color = textMuted;
+      footerEl.querySelectorAll('.footer-disclosure').forEach(function(el) {
+        el.style.opacity = light ? '0.75' : '1';
+        el.style.color = textMuted;
+      });
       var footerDivs = footerEl.querySelectorAll('div[style*=font-size]');
       footerDivs.forEach(function(div) {
         if (div.querySelector('a[href^=mailto]')) {
-          div.querySelector('a').style.color = light ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)';
+          div.querySelector('a').style.color = light ? 'rgba(0,0,0,0.5)' : '#FFFFFF';
         } else {
           div.style.color = textMuted;
         }
