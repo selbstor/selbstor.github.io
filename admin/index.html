@@ -115,6 +115,8 @@
   .btn-limpar { display: none; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; padding: 0; border: none; border-radius: 50%; background: #dfe3e6; color: #555; font-size: 18px; line-height: 1; align-items: center; justify-content: center; cursor: pointer; }
   .btn-limpar:hover, .btn-limpar:active { background: #c9ced2; }
   .campo-limpar input:not(:placeholder-shown) ~ .btn-limpar { display: flex; }
+  /* No campo de busca o X fica sempre visível */
+  .busca-linha .campo-limpar .btn-limpar { display: flex; }
   .combo .campo-limpar input { padding-right: 72px; }
   .combo .campo-limpar .btn-limpar { right: 40px; }
   .preview-box { position: relative; display: inline-block; max-width: 100%; }
