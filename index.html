@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Carregando...</title>
+  <title>Carregando... — Selbstor|Achadinhos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap"
@@ -1601,7 +1601,7 @@
   <!-- Loading -->
   <div class="loading-screen" id="loadingScreen">
     <div class="loading-spinner"></div>
-    <div class="loading-text">Carregando...</div>
+    <div class="loading-text">Carregando achadinhos...</div>
   </div>
 
   <!-- Error -->
@@ -1823,6 +1823,7 @@
         else if (field === 'BOTÃO CANAL FLUTUANTE' || field === 'BOTAO CANAL FLUTUANTE') cfg.botaoCanalFlutuante = val.toUpperCase() === 'SIM';
         else if (field === 'TEXTO DISCLOSURE') cfg.textoDisclosure = val;
         else if (field === 'AVISO PREÇOS' || field === 'AVISO PRECOS') cfg.avisoPrecos = val;
+        else if (field === 'FEITO POR') cfg.feitoPor = val;
       }
 
       if (!cfg.textoDisclosure) cfg.textoDisclosure = 'Este site participa de programas de afiliados e pode receber comissão pelas compras realizadas nos links, sem custo adicional para você.';
@@ -2038,6 +2039,11 @@
         infoDiv.innerHTML = footerInfo;
         var creditEl = document.querySelector('.footer-credit');
         creditEl.parentNode.insertBefore(infoDiv, creditEl);
+      }
+
+      // Crédito do rodapé: usa o campo "Feito por" da aba Configurações (se vazio, mantém o texto padrão)
+      if (CONFIG.feitoPor) {
+        document.querySelector('.footer-credit').textContent = 'Feito por: ' + CONFIG.feitoPor;
       }
 
       var footerEl = document.getElementById('siteFooter');
