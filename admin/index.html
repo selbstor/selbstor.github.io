@@ -115,6 +115,8 @@
   .btn-limpar { display: none; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; padding: 0; border: none; border-radius: 50%; background: #dfe3e6; color: #555; font-size: 18px; line-height: 1; align-items: center; justify-content: center; cursor: pointer; }
   .btn-limpar:hover, .btn-limpar:active { background: #c9ced2; }
   .campo-limpar input:not(:placeholder-shown) ~ .btn-limpar { display: flex; }
+  /* Campo do link da imagem fica oculto (o valor continua sendo usado pelo sistema) */
+  #imagem1 { display: none !important; }
   /* No campo de busca o X fica sempre visível */
   .busca-linha .campo-limpar .btn-limpar { display: flex; }
   .combo .campo-limpar input { padding-right: 72px; }
@@ -257,18 +259,18 @@
         <div class="form-grupo"><label>Nome do produto *</label><input type="text" id="nome" required></div>
         
         <!-- ✅ CAMPO OCULTO: Descrição -->
-        <div class="form-grupo campo-oculto"><label>Descrição</label><textarea id="descricao" placeholder="Descreva os benefícios do produto..."></textarea></div>
+        <div class="form-grupo campo-oculto"><label>Descrição</label><textarea id="descricao" placeholder=" "></textarea></div>
         
         <div class="form-linha">
           <div class="form-grupo"><label>Tipo</label>
             <select id="tipo"><option value="FISICO">Físico</option><option value="DIGITAL">Digital</option></select>
           </div>
-          <div class="form-grupo"><label>Plataforma</label><input type="text" id="plataforma" placeholder="Ex: Amazon, Shopee"></div>
+          <div class="form-grupo"><label>Plataforma</label><input type="text" id="plataforma" placeholder=" "></div>
         </div>
         <div class="form-linha">
           <div class="form-grupo"><label>Categoria</label>
             <div class="combo" id="comboCategoria">
-              <input type="text" id="categoria" autocomplete="off" placeholder="Selecione ou digite">
+              <input type="text" id="categoria" autocomplete="off" placeholder=" ">
               <button type="button" class="combo-seta" id="comboSeta" aria-label="Mostrar categorias">▾</button>
               <div class="combo-lista oculto" id="listaCategorias"></div>
             </div>
@@ -281,10 +283,10 @@
       <div class="form-secao campo-oculto">
         <h3>💰 Preços e Cupons</h3>
         <div class="form-linha">
-          <div class="form-grupo"><label>Preço (R$)</label><input type="text" id="preco" inputmode="decimal" placeholder="Ex: 149.90"></div>
-          <div class="form-grupo"><label>Preço Promocional (R$)</label><input type="text" id="precoPromocional" inputmode="decimal" placeholder="Ex: 99.90"></div>
+          <div class="form-grupo"><label>Preço (R$)</label><input type="text" id="preco" inputmode="decimal" placeholder=" "></div>
+          <div class="form-grupo"><label>Preço Promocional (R$)</label><input type="text" id="precoPromocional" inputmode="decimal" placeholder=" "></div>
         </div>
-        <div class="form-grupo"><label>Cupom de Desconto</label><input type="text" id="cupom" placeholder="Ex: DESCONTO10"></div>
+        <div class="form-grupo"><label>Cupom de Desconto</label><input type="text" id="cupom" placeholder=" "></div>
       </div>
 
       <div class="form-secao">
@@ -292,9 +294,9 @@
         <div class="form-grupo"><label>Link de Afiliado *</label><input type="url" autocapitalize="off" autocorrect="off" spellcheck="false" id="link" required></div>
         
         <!-- ✅ CAMPO OCULTO: Texto do Botão -->
-        <div class="form-grupo campo-oculto"><label>Texto do Botão</label><input type="text" id="textoBotao" placeholder="Ex: Ver oferta na Amazon"></div>
+        <div class="form-grupo campo-oculto"><label>Texto do Botão</label><input type="text" id="textoBotao" placeholder=" "></div>
         
-        <div class="form-grupo"><label>Validade da oferta</label><input type="text" id="validade" placeholder="Ex: 31/12/2024"></div>
+        <div class="form-grupo"><label>Validade da oferta</label><input type="text" id="validade" placeholder=" "></div>
       </div>
 
       <div class="form-secao">
@@ -310,7 +312,7 @@
             <img id="imagemPreview" alt="Pré-visualização">
             <button type="button" id="btnRemoverImagem" class="btn-remover-img" aria-label="Remover imagem" title="Remover imagem">×</button>
           </div>
-          <input type="url" autocapitalize="off" autocorrect="off" spellcheck="false" id="imagem1" class="input-link-img" placeholder="Ou cole o link da imagem (https://...)">
+          <input type="url" autocapitalize="off" autocorrect="off" spellcheck="false" id="imagem1" class="input-link-img" placeholder=" ">
         </div>
         
         <!-- ✅ CAMPOS OCULTOS: Imagens 2, 3, 4 e Vídeo -->
@@ -321,7 +323,7 @@
         <div class="form-grupo campo-oculto"><label>Imagem 4</label><input type="url" autocapitalize="off" autocorrect="off" spellcheck="false" id="imagem4"></div>
 
         <!-- ✅ CAMPO VISÍVEL: Vídeo -->
-        <div class="form-grupo"><label>URL do Vídeo</label><input type="url" autocapitalize="off" autocorrect="off" spellcheck="false" id="video" placeholder="https://youtube.com/watch?v=..."></div>
+        <div class="form-grupo"><label>URL do Vídeo</label><input type="url" autocapitalize="off" autocorrect="off" spellcheck="false" id="video" placeholder=" "></div>
       </div>
 
       <div class="form-secao">
