@@ -1629,6 +1629,7 @@
       <span class="product-count" id="productCount"></span>
     </div>
     <div class="products-grid" id="productsGrid"></div>
+    <div id="gridSentinel" style="height:1px"></div>
   </main>
 
   <!-- Product Modal -->
@@ -2186,7 +2187,45 @@
         grid.innerHTML = `<div class="no-results"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg><p>Nenhum achadinho encontrado</p></div>`;
         return;
       }
-      grid.innerHTML = prods.map(productCardHTML).join("");
+      gridProds = prods;
+      gridLimit = PAGE_SIZE;
+      grid.innerHTML = prods.slice(0, gridLimit).map(function(p) { return productCardHTML(p); }).join("");
+      observarSentinela();
+    }
+
+    // ============================================
+    // ROLAGEM INFINITA — carrega de 50 em 50 produtos
+    // ============================================
+    var PAGE_SIZE = 50;
+    var gridLimit = PAGE_SIZE;
+    var gridProds = [];
+    var gridObserver = null;
+
+    function mostrarMaisProdutos() {
+      if (gridLimit >= gridProds.length) return;
+      var inicio = gridLimit;
+      gridLimit = Math.min(gridLimit + PAGE_SIZE, gridProds.length);
+      document.getElementById('productsGrid').insertAdjacentHTML('beforeend',
+        gridProds.slice(inicio, gridLimit).map(function(p) { return productCardHTML(p); }).join(''));
+      observarSentinela();
+    }
+
+    function observarSentinela() {
+      var el = document.getElementById('gridSentinel');
+      if (!el) return;
+      if (!('IntersectionObserver' in window)) {
+        // navegadores muito antigos: mostra tudo de uma vez
+        while (gridLimit < gridProds.length) mostrarMaisProdutos();
+        return;
+      }
+      if (!gridObserver) {
+        gridObserver = new IntersectionObserver(function(entries) {
+          if (entries[0].isIntersecting) mostrarMaisProdutos();
+        }, { rootMargin: '600px 0px' });
+      }
+      // reobserva para checar de novo se a tela ainda tem espaço sobrando
+      gridObserver.unobserve(el);
+      gridObserver.observe(el);
     }
 
     // ============================================
