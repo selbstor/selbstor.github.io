@@ -29,7 +29,7 @@ async function recarregarDireto() {
   if (!txt) return;
   produtos = parseCSV(txt);
   atualizarFiltroCategorias();
-  renderizarTabela();
+  renderizarTabela(true);
 }
 
 // Mostra na hora, sem esperar o servidor, o que acabou de ser salvo
@@ -45,7 +45,7 @@ function aplicarLocal(acao, linha, produto) {
     produtos.forEach(x => { if (x._linha > linha) x._linha--; });
   }
   atualizarFiltroCategorias();
-  renderizarTabela();
+  renderizarTabela(true);
 }
 
 async function carregarProdutos() {
@@ -185,7 +185,7 @@ function mostrarMensagem(msg) {
 }
 
 // ============ RENDERIZAR (tabela no desktop, cards no celular) ============
-function renderizarTabela() {
+function renderizarTabela(manterPagina) {
   const busca = (document.getElementById('busca').value || '').toLowerCase();
   const filtro = document.getElementById('filtroStatus').value;
   const filtroCat = document.getElementById('filtroCategoria').value;
@@ -206,6 +206,8 @@ function renderizarTabela() {
   filtrados.sort((a, b) => b._linha - a._linha);
 
   if (filtrados.length === 0) {
+    dadosAdmin = [];
+    limiteAdmin = TAM_PAGINA;
     mostrarMensagem('Nenhum produto encontrado');
     atualizarTotal(0);
     return;
@@ -222,11 +224,51 @@ function renderizarTabela() {
     ativo: get(p, 'Ativo') || 'Sim'
   }));
 
-  const botaoMenu = linha =>
-    `<button type="button" class="btn-menu" title="Ações" aria-label="Ações" onclick="abrirMenu(event, ${linha})">⋮</button>`;
+  if (!manterPagina) limiteAdmin = TAM_PAGINA;
+  dadosAdmin = dados;
 
-  // Tabela (desktop)
-  corpo.innerHTML = dados.map(d => {
+  corpo.innerHTML = dados.slice(0, limiteAdmin).map(linhaTabelaHTML).join('');
+  cards.innerHTML = dados.slice(0, limiteAdmin).map(cardHTML).join('');
+
+  atualizarTotal(dados.length);
+  observarSentinelaAdmin();
+}
+
+// ============ ROLAGEM INFINITA (50 em 50) ============
+const TAM_PAGINA = 50;
+let limiteAdmin = TAM_PAGINA;
+let dadosAdmin = [];
+let observadorAdmin = null;
+
+function carregarMaisAdmin() {
+  if (limiteAdmin >= dadosAdmin.length) return;
+  const inicio = limiteAdmin;
+  limiteAdmin = Math.min(limiteAdmin + TAM_PAGINA, dadosAdmin.length);
+  const novos = dadosAdmin.slice(inicio, limiteAdmin);
+  document.getElementById('corpoTabela').insertAdjacentHTML('beforeend', novos.map(linhaTabelaHTML).join(''));
+  document.getElementById('listaCards').insertAdjacentHTML('beforeend', novos.map(cardHTML).join(''));
+  observarSentinelaAdmin();
+}
+
+function observarSentinelaAdmin() {
+  const el = document.getElementById('sentinelaAdmin');
+  if (!el || !('IntersectionObserver' in window)) {
+    while (limiteAdmin < dadosAdmin.length) carregarMaisAdmin();
+    return;
+  }
+  if (!observadorAdmin) {
+    observadorAdmin = new IntersectionObserver(entradas => {
+      if (entradas[0].isIntersecting) carregarMaisAdmin();
+    }, { rootMargin: '600px 0px' });
+  }
+  observadorAdmin.unobserve(el);
+  observadorAdmin.observe(el);
+}
+
+const botaoMenu = linha =>
+  `<button type="button" class="btn-menu" title="Ações" aria-label="Ações" onclick="abrirMenu(event, ${linha})">⋮</button>`;
+
+function linhaTabelaHTML(d) {
     const imgHtml = d.img
       ? `<img src="${escapeHtml(d.img)}" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:4px;" onerror="this.style.display='none'">`
       : '—';
@@ -241,10 +283,9 @@ function renderizarTabela() {
         <td class="acoes">${botaoMenu(d.linha)}</td>
       </tr>
     `;
-  }).join('');
+}
 
-  // Cards (celular)
-  cards.innerHTML = dados.map(d => {
+function cardHTML(d) {
     const imgHtml = d.img
       ? `<img src="${escapeHtml(d.img)}" alt="" onerror="this.style.display='none'">`
       : '🛍️';
@@ -262,9 +303,6 @@ function renderizarTabela() {
         ${botaoMenu(d.linha)}
       </div>
     `;
-  }).join('');
-
-  atualizarTotal(dados.length);
 }
 
 // ============ MENU DE AÇÕES (três pontinhos) ============
