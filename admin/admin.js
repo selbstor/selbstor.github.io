@@ -3,8 +3,60 @@ let produtos = [];
 let produtoEditando = null;
 
 // ============ CARREGAR ============
+// Lê a planilha direto pelo Apps Script (sempre atualizada, sem o atraso da publicação do Google).
+// Devolve o texto CSV ou null se o script não estiver preparado / falhar.
+async function buscarTextoDireto() {
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12000);
+    const r = await fetch(URL_GRAVAR_PRODUTOS + '?acao=listar&t=' + Date.now(), { cache: 'no-store', signal: ctrl.signal });
+    clearTimeout(timer);
+    if (!r.ok) return null;
+    let txt = await r.text();
+    if (txt.charCodeAt(0) === 0xFEFF) txt = txt.slice(1);
+    const c = txt.charAt(0);
+    if (!txt || c === '{' || c === '<' || txt.split(/\r?\n/).length < 2) return null;
+    return txt;
+  } catch (e) {
+    console.warn('Leitura direta indisponível, usando planilha publicada:', e);
+    return null;
+  }
+}
+
+// Atualiza a lista em segundo plano com os dados reais da planilha
+async function recarregarDireto() {
+  const txt = await buscarTextoDireto();
+  if (!txt) return;
+  produtos = parseCSV(txt);
+  atualizarFiltroCategorias();
+  renderizarTabela();
+}
+
+// Mostra na hora, sem esperar o servidor, o que acabou de ser salvo
+function aplicarLocal(acao, linha, produto) {
+  if (acao === 'novo') {
+    const ultima = produtos.reduce((m, x) => Math.max(m, x._linha || 1), 1);
+    produtos.push(Object.assign({ _linha: ultima + 1 }, produto));
+  } else if (acao === 'editar') {
+    const p = produtos.find(x => x._linha === linha);
+    if (p) Object.assign(p, produto);
+  } else if (acao === 'excluir') {
+    produtos = produtos.filter(x => x._linha !== linha);
+    produtos.forEach(x => { if (x._linha > linha) x._linha--; });
+  }
+  atualizarFiltroCategorias();
+  renderizarTabela();
+}
+
 async function carregarProdutos() {
   mostrarMensagem('Carregando produtos...');
+  const direto = await buscarTextoDireto();
+  if (direto) {
+    produtos = parseCSV(direto);
+    atualizarFiltroCategorias();
+    renderizarTabela();
+    return;
+  }
   try {
     const resp = await fetch(ACHADINHOS.planilha_catalogo + '&t=' + Date.now(), {
       method: 'GET',
@@ -381,7 +433,8 @@ async function salvarProduto() {
     if (resJson.ok) {
       toast('✅ ' + (resJson.msg || 'Salvo com sucesso!'), 'sucesso');
       fecharModal();
-      setTimeout(carregarProdutos, 1500);
+      aplicarLocal(dados.acao, dados.linha, produto);
+      recarregarDireto();
     } else {
       toast('❌ Erro: ' + (resJson.msg || 'Desconhecido'), 'erro');
     }
@@ -413,7 +466,8 @@ async function excluir(linha) {
 
     if (resJson.ok) {
       toast('✅ Excluído com sucesso!', 'sucesso');
-      setTimeout(carregarProdutos, 1500);
+      aplicarLocal('excluir', linha);
+      recarregarDireto();
     } else {
       toast('❌ Erro: ' + (resJson.msg || 'Desconhecido'), 'erro');
     }
@@ -619,4 +673,3 @@ document.getElementById('btnRemoverImagem').addEventListener('click', () => {
 
 // Inicializa
 carregarProdutos();
-
