@@ -696,6 +696,34 @@
       overflow: hidden;
     }
 
+    /* Cards sempre com a mesma altura: nome em até 2 linhas (com "...") e botão alinhado embaixo */
+    .product-card {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .product-info {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .product-cat {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .product-name {
+      min-height: 2.6em;
+      line-clamp: 2;
+      overflow-wrap: anywhere;
+    }
+
+    .product-info .btn-details {
+      margin-top: auto;
+    }
+
     .product-price {
       display: flex;
       align-items: baseline;
