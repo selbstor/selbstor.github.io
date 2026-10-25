@@ -1803,9 +1803,44 @@
     // ============================================
     // LOAD CATÁLOGO FROM SHEETS
     // ============================================
+    var catalogoTextoAtual = '';
+
     async function loadCatalogo() {
       const res = await fetch(ACHADINHOS.planilha_catalogo + '&_t=' + Date.now(), { cache: 'no-store' });
       const text = await res.text();
+      catalogoTextoAtual = text;
+      aplicarCatalogo(text);
+    }
+
+    // Depois que a vitrine já está na tela, confere os dados direto no Apps Script.
+    // A planilha publicada do Google demora alguns minutos para refletir mudanças;
+    // por aqui o produto novo aparece em poucos segundos.
+    async function atualizarCatalogoFresco() {
+      try {
+        if (!ACHADINHOS.registrar_cliques) return;
+        const ctrl = new AbortController();
+        const timer = setTimeout(function() { ctrl.abort(); }, 15000);
+        const r = await fetch(ACHADINHOS.registrar_cliques + '?acao=listar&_t=' + Date.now(), { cache: 'no-store', signal: ctrl.signal });
+        clearTimeout(timer);
+        if (!r.ok) return;
+        let txt = await r.text();
+        if (txt.charCodeAt(0) === 0xFEFF) txt = txt.slice(1);
+        const c = txt.charAt(0);
+        if (!txt || c === '{' || c === '<' || txt === catalogoTextoAtual) return;
+        const anteriores = PRODUCTS;
+        const antes = JSON.stringify(anteriores);
+        aplicarCatalogo(txt);
+        if (!PRODUCTS.length && anteriores.length) { PRODUCTS = anteriores; return; }
+        if (JSON.stringify(PRODUCTS) === antes) return;
+        catalogoTextoAtual = txt;
+        buildCategoryNav();
+        renderProducts();
+      } catch (e) {
+        console.warn('Atualização direta indisponível:', e);
+      }
+    }
+
+    function aplicarCatalogo(text) {
       const rows = parseCSV(text);
 
       const products = [];
@@ -2367,7 +2402,7 @@
       var hoje = d.getFullYear() + ('0' + (d.getMonth() + 1)).slice(-2) + ('0' + d.getDate()).slice(-2);
       var emailOk = CONFIG.email && email === String(CONFIG.email).trim().toLowerCase();
       if (emailOk && senha === hoje) {
-        window.location.href = 'https://selbstor.github.io/admin/';
+        window.location.href = 'https://selbstor.github.io/admin/index.html';
       } else {
         document.getElementById('adminErro').classList.add('show');
       }
@@ -2582,6 +2617,7 @@
         }
         document.getElementById("loadingScreen").classList.add("hidden");
         setTimeout(() => document.getElementById("loadingScreen").remove(), 500);
+        atualizarCatalogoFresco();
       } catch (err) {
         console.error("Planiloja Achadinhos Error:", err);
         document.getElementById("loadingScreen").style.display = "none";
