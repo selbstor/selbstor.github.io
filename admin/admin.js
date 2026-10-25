@@ -627,9 +627,9 @@ async function enviarImagem(arquivo) {
 document.getElementById('btnNovo').onclick = novoProduto;
 document.getElementById('btnRecarregar').onclick = carregarProdutos;
 document.getElementById('btnRecarregarMobile').onclick = carregarProdutos;
-document.getElementById('busca').oninput = renderizarTabela;
-document.getElementById('filtroStatus').onchange = renderizarTabela;
-document.getElementById('filtroCategoria').onchange = renderizarTabela;
+document.getElementById('busca').oninput = () => renderizarTabela();
+document.getElementById('filtroStatus').onchange = () => renderizarTabela();
+document.getElementById('filtroCategoria').onchange = () => renderizarTabela();
 
 // Combobox de categoria
 const campoCategoria = document.getElementById('categoria');
