@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Selbstor|Achadinhos</title>
+  <title>Carregando... — Selbstor|Achadinhos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap"
@@ -685,7 +685,7 @@
 
     .product-name {
       font-size: 0.95rem;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--secondary);
       margin-bottom: 8px;
       letter-spacing: -0.01em;
@@ -1140,7 +1140,7 @@
       gap: 5px;
       padding: 2px 2px 2px 8px;
       background: var(--video-btn-bg, #1F1FE6);
-      color: #fff;
+      color: var(--video-btn-fg, #fff);
       border-radius: 50px;
       font-size: 0.58rem;
       font-weight: 600;
@@ -1601,7 +1601,7 @@
   <!-- Loading -->
   <div class="loading-screen" id="loadingScreen">
     <div class="loading-spinner"></div>
-    <div class="loading-text">Carregando...</div>
+    <div class="loading-text">Carregando achadinhos...</div>
   </div>
 
   <!-- Error -->
@@ -1824,6 +1824,7 @@
         else if (field === 'TEXTO DISCLOSURE') cfg.textoDisclosure = val;
         else if (field === 'AVISO PREÇOS' || field === 'AVISO PRECOS') cfg.avisoPrecos = val;
         else if (field === 'FEITO POR') cfg.feitoPor = val;
+        else if (field === 'COR BOTÃO VÍDEO' || field === 'COR BOTAO VIDEO' || field === 'COR DO BOTÃO VÍDEO' || field === 'COR DO BOTAO VIDEO') cfg.corBotaoVideo = val;
       }
 
       if (!cfg.textoDisclosure) cfg.textoDisclosure = 'Este site participa de programas de afiliados e pode receber comissão pelas compras realizadas nos links, sem custo adicional para você.';
@@ -2094,10 +2095,22 @@
         topBar.textContent = CONFIG.mensagemTopo;
         if (CONFIG.corBarraTopo) {
           topBar.style.background = CONFIG.corBarraTopo;
-          document.documentElement.style.setProperty('--video-btn-bg', CONFIG.corBarraTopo);
         }
         topBar.classList.add('show');
       }
+      // Cor do botão "Vídeo": campo "Cor Botão Vídeo" da aba Configurações (se vazio ou inválido, usa a cor da barra do topo)
+      (function() {
+        function corValida(v) {
+          v = String(v || '').trim();
+          if (/^[0-9a-f]{3}$|^[0-9a-f]{6}$/i.test(v)) v = '#' + v;
+          return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v) ? v : '';
+        }
+        var corBtn = corValida(CONFIG.corBotaoVideo) || corValida(CONFIG.corBarraTopo);
+        if (corBtn) {
+          document.documentElement.style.setProperty('--video-btn-bg', corBtn);
+          document.documentElement.style.setProperty('--video-btn-fg', isLightColor(corBtn) ? '#222222' : '#FFFFFF');
+        }
+      })();
       document.getElementById('siteHeader').style.display = '';
       document.getElementById('catNavWrap').style.display = '';
       document.getElementById('mainContent').style.display = '';
@@ -2719,3 +2732,4 @@
   </script>
 </body>
 </html>
+
