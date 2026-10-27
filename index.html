@@ -2261,10 +2261,8 @@
       }
       var autoHTML = '';
       if (p.precoAutoMin > 0) {
-        var dt = p.precoAutoEm;
-        var quando = ('0' + dt.getDate()).slice(-2) + '/' + ('0' + (dt.getMonth() + 1)).slice(-2) + ' ' + ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
         autoHTML = '<div class="price-auto">' + (p.precoAutoMax > p.precoAutoMin ? '<span class="price-auto-pre">a partir de </span>' : '') +
-          'R$ ' + fp(p.precoAutoMin) + '<span class="price-auto-upd">Atualizado em ' + quando + '</span></div>';
+          'R$ ' + fp(p.precoAutoMin) + '</div>';
         priceHTML = ''; // o preço automático substitui o preço digitado
       }
       return '<div class="product-card">' +
