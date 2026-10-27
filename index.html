@@ -467,9 +467,9 @@
     }
 
     .cat-btn {
-      padding: 12px 18px;
-      font-size: 0.88rem;
-      font-weight: 500;
+      padding: 14px 20px;
+      font-size: 1.05rem;
+      font-weight: 700;
       color: var(--text-muted);
       background: none;
       white-space: nowrap;
@@ -485,7 +485,7 @@
     .cat-btn.active {
       color: var(--primary);
       border-bottom-color: var(--primary);
-      font-weight: 600;
+      font-weight: 800;
     }
 
     /* ============================================
@@ -712,6 +712,28 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    /* Preço vindo da API da Shopee: vermelho, acima do nome */
+    .price-auto {
+      color: #D90429;
+      font-weight: 800;
+      font-size: 1.08rem;
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+
+    .price-auto-pre {
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+
+    .price-auto-upd {
+      display: block;
+      font-size: 0.62rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-top: 1px;
     }
 
     .product-name {
@@ -1876,8 +1898,16 @@
       const rows = parseCSV(text);
 
       const products = [];
+      var colMin = -1, colMax = -1, colUpd = -1;
+      function semAcento(t) { return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase(); }
       for (const row of rows) {
         const first = (row[0] || '').trim().toUpperCase();
+        if (first === 'ATIVO' || first === 'ATIVO *') {
+          var cab = row.map(semAcento);
+          colMin = cab.indexOf('PRECO SHOPEE MIN');
+          colMax = cab.indexOf('PRECO SHOPEE MAX');
+          colUpd = cab.indexOf('PRECO ATUALIZADO EM');
+        }
         if (!first || first === 'ATIVO' || first === 'ATIVO *' || first === 'SIM OU NÃO' || first.includes('CATÁLOGO') || first.includes('CATALOGO') || first.includes('CADA LINHA') || first.includes('DICAS')) continue;
         if (first !== 'SIM') continue;
 
@@ -1902,9 +1932,30 @@
           img4: fixImg((row[17] || '').trim()),
           ordem: parseInt(row[18]) || 9999,
           destaque: row.length > 19 && (row[19] || '').trim().toUpperCase() === 'SIM',
+          precoAutoMin: 0,
+          precoAutoMax: 0,
+          precoAutoEm: null,
         });
+        // Preço automático (API da Shopee): só vale se tiver data de atualização de até 48 horas
+        var pa = products[products.length - 1];
+        var aMin = colMin >= 0 ? parsePrecoBR(row[colMin]) : 0;
+        var aMax = colMax >= 0 ? parsePrecoBR(row[colMax]) : 0;
+        var aEm = colUpd >= 0 ? parseDataHoraBR(row[colUpd]) : null;
+        if (aMin > 0 && aEm && (Date.now() - aEm.getTime()) <= 48 * 3600 * 1000) {
+          pa.precoAutoMin = aMin;
+          pa.precoAutoMax = Math.max(aMax, aMin);
+          pa.precoAutoEm = aEm;
+        }
       }
       PRODUCTS = products.filter(p => p.nome && p.linkAfiliado && ofertaValida(p));
+    }
+
+    // data e hora no formato dd/MM/yyyy HH:mm
+    function parseDataHoraBR(val) {
+      var m = String(val || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ T]+(\d{1,2}):(\d{2}))?/);
+      if (!m) return null;
+      var d = new Date(parseInt(m[3], 10), parseInt(m[2], 10) - 1, parseInt(m[1], 10), parseInt(m[4] || '0', 10), parseInt(m[5] || '0', 10), 0);
+      return isNaN(d.getTime()) ? null : d;
     }
 
     function parseDataBR(val) {
@@ -2208,6 +2259,14 @@
         var prefixo = p.tipo !== 'DIGITAL' ? '<span style="font-size:0.72rem;font-weight:500;color:var(--text-muted)">a partir de </span>' : '';
         priceHTML = '<div class="product-price"><span class="price-current">' + prefixo + 'R$ ' + fp(hasPromo ? p.precoPromo : p.preco) + '</span>' + (hasPromo ? '<span class="price-old">R$ ' + fp(p.preco) + '</span>' : '') + '</div>';
       }
+      var autoHTML = '';
+      if (p.precoAutoMin > 0) {
+        var dt = p.precoAutoEm;
+        var quando = ('0' + dt.getDate()).slice(-2) + '/' + ('0' + (dt.getMonth() + 1)).slice(-2) + ' ' + ('0' + dt.getHours()).slice(-2) + ':' + ('0' + dt.getMinutes()).slice(-2);
+        autoHTML = '<div class="price-auto">' + (p.precoAutoMax > p.precoAutoMin ? '<span class="price-auto-pre">a partir de </span>' : '') +
+          'R$ ' + fp(p.precoAutoMin) + '<span class="price-auto-upd">Atualizado em ' + quando + '</span></div>';
+        priceHTML = ''; // o preço automático substitui o preço digitado
+      }
       return '<div class="product-card">' +
         '<div class="product-img-wrap"><img src="' + p.img1 + '" alt="' + p.nome + '" loading="lazy" onerror="handleImgError(this)">' +
         (hasPromo ? '<span class="badge-promo">-' + Math.round((1 - p.precoPromo / p.preco) * 100) + '%</span>' : '') +
@@ -2217,6 +2276,7 @@
         '</div>' +
         '<div class="product-info">' +
         '<div class="product-cat">' + p.categoria + (p.subcategoria ? ' · ' + p.subcategoria : '') + '</div>' +
+        autoHTML +
         '<div class="product-name">' + p.nome + '</div>' +
         priceHTML +
         // 🔥 ALTERAÇÃO AQUI: Botão transformado em link direto para o link de afiliado
