@@ -725,4 +725,31 @@ document.getElementById('btnRemoverImagem').addEventListener('click', () => {
 });
 
 // Inicializa
+// ===== Campo "Preço" manual =====
+// Só aparece no formulário se, na aba Configurações, "Mostrar Campo Preço" estiver como SIM.
+function semAcentoMaiusculo(t) {
+  return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase();
+}
+
+async function configurarCampoPreco() {
+  try {
+    const r = await fetch(ACHADINHOS.planilha_configuracoes + '&_t=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) return;
+    const linhas = (await r.text()).split(/\r?\n/);
+    let mostrar = false;
+    for (const l of linhas) {
+      const c = parseLinhaCSV(l);
+      if (semAcentoMaiusculo(c[0]).replace(/[^A-Z ]/g, '') === 'MOSTRAR CAMPO PRECO') {
+        mostrar = semAcentoMaiusculo(c[1]) === 'SIM';
+        break;
+      }
+    }
+    const grupo = document.getElementById('grupoPreco');
+    if (grupo) grupo.classList.toggle('campo-oculto', !mostrar);
+  } catch (e) {
+    console.warn('Não foi possível ler "Mostrar Campo Preço":', e);
+  }
+}
+configurarCampoPreco();
+
 carregarProdutos();
