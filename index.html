@@ -770,6 +770,12 @@
       margin-bottom: 4px;
     }
 
+    .price-auto .price-old {
+      font-size: 0.75rem;
+      font-weight: 500;
+      margin-left: 6px;
+    }
+
     .price-auto-pre {
       font-size: 0.72rem;
       font-weight: 600;
@@ -2352,6 +2358,11 @@
       if (p.precoAutoMin > 0) {
         autoHTML = '<div class="price-auto">' + 'R$ ' + fp(p.precoAutoMin) + '</div>';
         priceHTML = ''; // o preço automático substitui o preço digitado
+      } else if (p.preco > 0) {
+        // preço digitado à mão (campo "Preço" do painel): mesmo visual do automático, acima do nome
+        autoHTML = '<div class="price-auto">R$ ' + fp(hasPromo ? p.precoPromo : p.preco) +
+          (hasPromo ? '<span class="price-old">R$ ' + fp(p.preco) + '</span>' : '') + '</div>';
+        priceHTML = '';
       }
       return '<div class="product-card">' +
         '<div class="product-img-wrap"><img src="' + p.img1 + '" alt="' + p.nome + '" loading="lazy" onerror="handleImgError(this)">' +
