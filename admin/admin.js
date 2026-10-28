@@ -427,6 +427,7 @@ async function salvarProduto() {
   }
   if (arquivo) {
     try {
+      toast('⏳ Aguarde...', '', true);
       urlImagem = await enviarImagem(arquivo);
     } catch (err) {
       console.error(err);
@@ -525,13 +526,16 @@ async function excluir(linha) {
   }
 }
 
-function toast(msg, tipo) {
+let toastTimer = null;
+// fixo = true: a mensagem fica na tela até a próxima (usado no "Aguarde...")
+function toast(msg, tipo, fixo) {
   const t = document.getElementById('toast');
   if (!t) return;
   t.textContent = msg;
   t.className = 'toast ' + (tipo || '');
   t.classList.remove('oculto');
-  setTimeout(() => t.classList.add('oculto'), 3500);
+  clearTimeout(toastTimer);
+  if (!fixo) toastTimer = setTimeout(() => t.classList.add('oculto'), 3500);
 }
 
 // ============ COMBOBOX DE CATEGORIA ============
