@@ -61,9 +61,22 @@
       scroll-behavior: smooth;
     }
 
-    html, body {
+    html {
       overflow-x: hidden;
       max-width: 100vw;
+    }
+
+    /* "clip" corta o excesso sem transformar o body em área de rolagem (o que quebrava o cabeçalho fixo) */
+    body {
+      overflow-x: clip;
+      max-width: 100vw;
+    }
+
+    /* Topo fixo: barra de aviso + cabeçalho + menu de categorias */
+    .site-top {
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
     body.modal-open {
@@ -189,8 +202,7 @@
     .header {
       background: var(--white);
       border-bottom: 1px solid var(--gray-200);
-      position: sticky;
-      top: 0;
+      position: relative;
       z-index: 100;
     }
 
@@ -1632,6 +1644,7 @@
     <p>Verifique se a planilha está publicada corretamente e tente novamente.</p>
   </div>
 
+  <div class="site-top" id="siteTop">
   <div class='top-bar' id='topBar'></div>
 
   <!-- Header -->
@@ -1667,6 +1680,7 @@
   <nav class="cat-nav" style="display:none" id="catNavWrap">
     <div class="cat-nav-inner" id="catNav"></div>
   </nav>
+  </div>
   <div class="subcat-bar" id="subcatBar"></div>
   <section class="banner" id="bannerSection"></section>
   <main class="main" style="display:none" id="mainContent">
@@ -2256,13 +2270,12 @@
       var hasPromo = p.precoPromo && p.precoPromo > 0 && p.preco > 0 && p.precoPromo < p.preco;
       var priceHTML = '';
       if (p.preco > 0) {
-        var prefixo = p.tipo !== 'DIGITAL' ? '<span style="font-size:0.72rem;font-weight:500;color:var(--text-muted)">a partir de </span>' : '';
+        var prefixo = '';
         priceHTML = '<div class="product-price"><span class="price-current">' + prefixo + 'R$ ' + fp(hasPromo ? p.precoPromo : p.preco) + '</span>' + (hasPromo ? '<span class="price-old">R$ ' + fp(p.preco) + '</span>' : '') + '</div>';
       }
       var autoHTML = '';
       if (p.precoAutoMin > 0) {
-        autoHTML = '<div class="price-auto">' + (p.precoAutoMax > p.precoAutoMin ? '<span class="price-auto-pre">a partir de </span>' : '') +
-          'R$ ' + fp(p.precoAutoMin) + '</div>';
+        autoHTML = '<div class="price-auto">' + 'R$ ' + fp(p.precoAutoMin) + '</div>';
         priceHTML = ''; // o preço automático substitui o preço digitado
       }
       return '<div class="product-card">' +
@@ -2367,7 +2380,7 @@
       const hasPromo = currentProduct.precoPromo && currentProduct.precoPromo > 0 && currentProduct.preco > 0 && currentProduct.precoPromo < currentProduct.preco;
       var priceEl = document.getElementById('modalPrice');
       if (currentProduct.preco > 0) {
-        var prefixo = currentProduct.tipo !== 'DIGITAL' ? '<span style="font-size:0.85rem;font-weight:500;color:var(--text-muted)">a partir de </span>' : '';
+        var prefixo = '';
         priceEl.style.display = '';
         priceEl.innerHTML = prefixo + '<span class="price-current">R$ ' + fp(hasPromo ? currentProduct.precoPromo : currentProduct.preco) + '</span>' + (hasPromo ? '<span class="price-old">R$ ' + fp(currentProduct.preco) + '</span>' : '');
       } else {
