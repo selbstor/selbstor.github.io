@@ -221,7 +221,8 @@ function renderizarTabela(manterPagina) {
     link: (get(p, 'Link de Afiliado', 'Link') || '').trim(),
     cat: get(p, 'Categoria') || '-',
     destaque: get(p, 'Destaque') || 'Não',
-    ativo: get(p, 'Ativo') || 'Sim'
+    ativo: get(p, 'Ativo') || 'Sim',
+    preco: precoDoProduto(p)
   }));
 
   if (!manterPagina) limiteAdmin = TAM_PAGINA;
@@ -285,6 +286,41 @@ function linhaTabelaHTML(d) {
     `;
 }
 
+// ===== Preço mostrado no card =====
+// Shopee: preço automático da API (colunas "Preço Shopee Min"). Outras plataformas: só o preço digitado à mão.
+function precoNum(v) {
+  if (typeof v === 'number') return v;
+  let t = String(v == null ? '' : v).replace(/R\$/g, '').replace(/\s/g, '');
+  if (!t) return 0;
+  if (t.indexOf(',') !== -1) t = t.replace(/\./g, '').replace(',', '.');
+  return parseFloat(t) || 0;
+}
+
+function formatarPreco(n) { return n.toFixed(2).replace('.', ','); }
+
+function dataHoraAdmin(v) {
+  const m = String(v || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ T]+(\d{1,2}):(\d{2}))?/);
+  if (!m) return null;
+  const d = new Date(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0), 0);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function precoDoProduto(p) {
+  const ehShopee = String(get(p, 'Plataforma') || '').toLowerCase().indexOf('shopee') !== -1;
+  if (ehShopee) {
+    const min = precoNum(get(p, 'Preço Shopee Min'));
+    if (min > 0) {
+      const quando = dataHoraAdmin(get(p, 'Preço Atualizado em'));
+      const recente = quando && (Date.now() - quando.getTime()) <= 48 * 3600 * 1000;
+      return { texto: formatarPreco(min), antigo: !recente };
+    }
+  }
+  const normal = precoNum(get(p, 'Preço'));
+  const promo = precoNum(get(p, 'Preço Promocional'));
+  if (normal > 0) return { texto: formatarPreco(promo > 0 && promo < normal ? promo : normal), antigo: false };
+  return null;
+}
+
 function cardHTML(d) {
     const imgHtml = d.img
       ? `<img src="${escapeHtml(d.img)}" alt="" onerror="this.style.display='none'">`
@@ -295,6 +331,7 @@ function cardHTML(d) {
         <div class="card-info">
           <div class="card-nome">${escapeHtml(d.nome)}</div>
           <div class="card-cat">${escapeHtml(d.plat ? d.plat + ' · ' + d.cat : d.cat)}</div>
+          ${d.preco ? `<div class="card-preco${d.preco.antigo ? ' antigo' : ''}">R$ ${d.preco.texto}${d.preco.antigo ? ' <small>(desatualizado)</small>' : ''}</div>` : ''}
           <div class="card-badges">
             <span class="badge badge-${d.destaque === 'Sim' ? 'destaque' : 'nao'}">${d.destaque === 'Sim' ? '★ Destaque' : 'Sem destaque'}</span>
             <span class="badge badge-${d.ativo === 'Sim' ? 'sim' : 'nao'}">${d.ativo === 'Sim' ? 'Ativo' : 'Inativo'}</span>
