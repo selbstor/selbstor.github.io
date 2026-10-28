@@ -768,25 +768,51 @@ function semAcentoMaiusculo(t) {
   return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase();
 }
 
-async function configurarCampoPreco() {
+// Converte link do Google Drive em endereço que o navegador consegue exibir como imagem
+function urlImagemDrive(url) {
+  const u = String(url || '').trim();
+  if (!u) return '';
+  let m = u.match(/drive\.google\.com\/file\/d\/([^\/\?]+)/);
+  if (!m) m = u.match(/drive\.google\.com\/open\?id=([^&]+)/);
+  if (!m) m = u.match(/drive\.google\.com\/uc\?.*id=([^&]+)/);
+  return m ? 'https://lh3.googleusercontent.com/d/' + m[1] : u;
+}
+
+// Lê a aba Configurações (uma vez) e ajusta o painel:
+//  - "Mostrar Campo Preço" = SIM  -> mostra o campo Preço no formulário
+//  - "Logo (URL)" e "Nome da Loja" -> mostram o logotipo acima do título
+async function configurarPainel() {
   try {
     const r = await fetch(ACHADINHOS.planilha_configuracoes + '&_t=' + Date.now(), { cache: 'no-store' });
     if (!r.ok) return;
     const linhas = (await r.text()).split(/\r?\n/);
-    let mostrar = false;
+    let mostrarPreco = false, logo = '', nome = '';
     for (const l of linhas) {
       const c = parseLinhaCSV(l);
-      if (semAcentoMaiusculo(c[0]).replace(/[^A-Z ]/g, '') === 'MOSTRAR CAMPO PRECO') {
-        mostrar = semAcentoMaiusculo(c[1]) === 'SIM';
-        break;
-      }
+      const chave = semAcentoMaiusculo(c[0]).replace(/[^A-Z0-9() ]/g, '').trim();
+      if (chave === 'MOSTRAR CAMPO PRECO') mostrarPreco = semAcentoMaiusculo(c[1]) === 'SIM';
+      else if (chave === 'LOGO (URL)') logo = String(c[1] || '').trim();
+      else if (chave === 'NOME DA LOJA') nome = String(c[1] || '').trim();
     }
+
     const grupo = document.getElementById('grupoPreco');
-    if (grupo) grupo.classList.toggle('campo-oculto', !mostrar);
+    if (grupo) grupo.classList.toggle('campo-oculto', !mostrarPreco);
+
+    const marca = document.getElementById('marcaAdmin');
+    const img = document.getElementById('logoAdmin');
+    if (marca && (logo || nome)) {
+      document.getElementById('nomeLojaAdmin').textContent = nome;
+      if (logo && img) {
+        img.onload = function () { img.style.display = 'block'; };
+        img.onerror = function () { img.style.display = 'none'; };
+        img.src = urlImagemDrive(logo);
+      }
+      marca.style.display = 'flex';
+    }
   } catch (e) {
-    console.warn('Não foi possível ler "Mostrar Campo Preço":', e);
+    console.warn('Não foi possível ler as Configurações:', e);
   }
 }
-configurarCampoPreco();
+configurarPainel();
 
 carregarProdutos();
