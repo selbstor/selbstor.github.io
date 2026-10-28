@@ -258,6 +258,9 @@
         
         <!-- ✅ CAMPO OCULTO: Descrição -->
         <div class="form-grupo campo-oculto"><label>Descrição</label><textarea id="descricao" placeholder=" "></textarea></div>
+
+        <!-- Preço manual: só aparece se na aba Configurações "Mostrar Campo Preço" estiver como SIM -->
+        <div class="form-grupo campo-oculto" id="grupoPreco"><label>Preço (R$)</label><input type="text" id="preco" inputmode="decimal" placeholder=" "></div>
         
         <div class="form-linha">
           <div class="form-grupo"><label>Tipo</label>
@@ -280,10 +283,7 @@
       <!-- ✅ SEÇÃO OCULTA: Preços e Cupons -->
       <div class="form-secao campo-oculto">
         <h3>💰 Preços e Cupons</h3>
-        <div class="form-linha">
-          <div class="form-grupo"><label>Preço (R$)</label><input type="text" id="preco" inputmode="decimal" placeholder=" "></div>
-          <div class="form-grupo"><label>Preço Promocional (R$)</label><input type="text" id="precoPromocional" inputmode="decimal" placeholder=" "></div>
-        </div>
+        <div class="form-grupo"><label>Preço Promocional (R$)</label><input type="text" id="precoPromocional" inputmode="decimal" placeholder=" "></div>
         <div class="form-grupo"><label>Cupom de Desconto</label><input type="text" id="cupom" placeholder=" "></div>
       </div>
 
