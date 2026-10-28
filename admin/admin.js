@@ -427,7 +427,6 @@ async function salvarProduto() {
   }
   if (arquivo) {
     try {
-      toast('📤 Enviando imagem...', '');
       urlImagem = await enviarImagem(arquivo);
     } catch (err) {
       console.error(err);
