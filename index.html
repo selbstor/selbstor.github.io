@@ -1997,7 +1997,7 @@
         var aMin = colMin >= 0 ? parsePrecoBR(row[colMin]) : 0;
         var aMax = colMax >= 0 ? parsePrecoBR(row[colMax]) : 0;
         var aEm = colUpd >= 0 ? parseDataHoraBR(row[colUpd]) : null;
-        if (aMin > 0 && aEm && (Date.now() - aEm.getTime()) <= 48 * 3600 * 1000) {
+        if (aMin > 0 && aEm && /shopee/i.test(pa.plataforma || '') && (Date.now() - aEm.getTime()) <= 48 * 3600 * 1000) {
           pa.precoAutoMin = aMin;
           pa.precoAutoMax = Math.max(aMax, aMin);
           pa.precoAutoEm = aEm;
