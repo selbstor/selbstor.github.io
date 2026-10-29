@@ -113,7 +113,7 @@
   .busca-linha { display: flex; gap: 10px; flex: 1; min-width: 200px; }
   .filtros .busca-linha input { flex: 1; min-width: 0; }
   .btn-recarregar-mobile { display: none; flex-shrink: 0; }
-  .total-produtos { text-align: center; color: #888; font-size: 0.9rem; padding: 16px 0 4px; }
+  .total-produtos { text-align: center; color: #888; font-size: 0.9rem; padding: 12px 0 14px; }
 
   /* ===== Botão X para limpar campos ===== */
   .campo-limpar { position: relative; display: block; }
@@ -233,6 +233,9 @@
       <option value="">Todas as categorias</option>
     </select>
   </div>
+
+  <!-- Total de produtos: logo abaixo dos filtros -->
+  <div id="totalProdutos" class="total-produtos"></div>
   
   <table>
     <thead>
@@ -253,7 +256,6 @@
   <div id="listaCards" class="cards"></div>
   <div id="sentinelaAdmin" style="height:1px"></div>
 
-  <div id="totalProdutos" class="total-produtos"></div>
 </div>
 
 <!-- MODAL DE PRODUTO SIMPLIFICADO -->
