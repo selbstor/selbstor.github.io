@@ -227,6 +227,28 @@
     header h1 { grid-column: 1 / -1; grid-row: 2; }
   }
 
+  /* ===== Título do formulário ===== */
+  .modal-titulo { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .modal-icone { flex-shrink: 0; width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #3498db, #2575b3); color: #fff; font-size: 1.6rem; font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 8px rgba(52,152,219,0.35); }
+  .modal-header h2 { font-size: 1.3rem; font-weight: 800; color: #2c3e50; letter-spacing: -0.01em; line-height: 1.2; }
+  .modal-sub { margin: 2px 0 0; font-size: 0.8rem; color: #8a94a0; line-height: 1.2; }
+  .modal-header { padding-bottom: 14px; border-bottom: 1px solid #eee; }
+  .fechar { flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; background: #f1f3f5; color: #666; font-size: 1.4rem; line-height: 1; display: flex; align-items: center; justify-content: center; }
+  .fechar:hover, .fechar:active { background: #e3e6e9; }
+
+  /* ===== Celular: formulário centralizado na tela (em vez de colado embaixo) ===== */
+  @media (max-width: 700px) and (min-height: 501px) {
+    .modal-overlay { padding: 14px; align-items: center; }
+    .modal { border-radius: 16px; max-height: calc(100vh - 28px); max-height: calc(100dvh - 28px); }
+    .modal-header { padding-top: 14px; padding-bottom: 12px; }
+    .fechar { width: 40px; height: 40px; font-size: 1.6rem; }
+  }
+
+  /* ===== Número da ordem (linha da planilha) no card ===== */
+  .card-cat-linha { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+  .card-cat-linha .card-cat { margin-top: 0; flex: 1; min-width: 0; }
+  .card-ordem { flex-shrink: 0; font-size: 0.75rem; font-weight: 700; color: #2575b3; background: #eaf4fc; border-radius: 10px; padding: 1px 8px; }
+  #ordem[readonly] { background: #f1f3f5; color: #666; }
 </style>
 </head>
 <body>
@@ -289,8 +311,14 @@
 <div id="modal" class="modal-overlay oculto">
   <div class="modal">
     <div class="modal-header">
-      <h2 id="modalTitulo">Novo Produto</h2>
-      <button class="fechar" onclick="fecharModal()">&times;</button>
+      <div class="modal-titulo">
+        <span class="modal-icone" id="modalIcone" aria-hidden="true">+</span>
+        <div>
+          <h2 id="modalTitulo">Novo Produto</h2>
+          <p class="modal-sub" id="modalSub">Preencha os dados do produto</p>
+        </div>
+      </div>
+      <button type="button" class="fechar" onclick="fecharModal()" aria-label="Fechar">&times;</button>
     </div>
     <form id="formProduto">
       <input type="hidden" id="campoLinha">
@@ -370,7 +398,7 @@
       <div class="form-secao">
         <h3>⚙️ Configurações</h3>
         <div class="form-linha">
-          <div class="form-grupo"><label>Ordem</label><input type="number" id="ordem" inputmode="numeric" value="0"></div>
+          <div class="form-grupo"><label>Ordem (nº da linha na planilha)</label><input type="number" id="ordem" inputmode="numeric" value="0" readonly></div>
           <div class="form-grupo"><label>Destaque?</label>
             <select id="destaque"><option value="Não">Não</option><option value="Sim">Sim</option></select>
           </div>
@@ -454,7 +482,7 @@ function aplicarLocal(acao, linha, produto) {
     if (p) Object.assign(p, produto);
   } else if (acao === 'excluir') {
     produtos = produtos.filter(x => x._linha !== linha);
-    produtos.forEach(x => { if (x._linha > linha) x._linha--; });
+    produtos.forEach(x => { if (x._linha > linha) { x._linha--; x['Ordem'] = String(x._linha); } });
   }
   atualizarFiltroCategorias();
   renderizarTabela(true);
@@ -732,7 +760,7 @@ function cardHTML(d) {
         <div class="card-img">${comLink(imgHtml, d.link)}</div>
         <div class="card-info">
           <div class="card-nome">${escapeHtml(d.nome)}</div>
-          <div class="card-cat">${escapeHtml(d.plat ? d.plat + ' · ' + d.cat : d.cat)}</div>
+          <div class="card-cat-linha"><div class="card-cat">${escapeHtml(d.plat ? d.plat + ' · ' + d.cat : d.cat)}</div><span class="card-ordem" title="Ordem (linha na planilha)">#${d.linha}</span></div>
           ${d.preco ? `<div class="card-preco${d.preco.antigo ? ' antigo' : ''}">R$ ${d.preco.texto}${d.preco.antigo ? ' <small>(desatualizado)</small>' : ''}</div>` : ''}
           <div class="card-badges">
             <span class="badge badge-${d.destaque === 'Sim' ? 'destaque' : 'nao'}">${d.destaque === 'Sim' ? '★ Destaque' : 'Sem destaque'}</span>
@@ -801,8 +829,11 @@ function fecharModal() {
 function novoProduto() {
   produtoEditando = null;
   document.getElementById('modalTitulo').textContent = 'Novo Produto';
+  document.getElementById('modalIcone').textContent = '+';
+  document.getElementById('modalSub').textContent = 'Preencha os dados do produto';
   document.getElementById('formProduto').reset();
   document.getElementById('campoLinha').value = '';
+  document.getElementById('ordem').value = proximaLinha();
   abrirModal();
 }
 
@@ -813,6 +844,8 @@ function editar(linha) {
   
   produtoEditando = p;
   document.getElementById('modalTitulo').textContent = 'Editar Produto';
+  document.getElementById('modalIcone').textContent = '✎';
+  document.getElementById('modalSub').textContent = 'Altere os dados do produto';
   document.getElementById('campoLinha').value = linha;
   
   document.getElementById('ativo').value = get(p, 'Ativo') || 'Sim';
@@ -839,10 +872,15 @@ function editar(linha) {
   document.getElementById('imagem3').value = get(p, 'Imagem 3') || '';
   document.getElementById('imagem4').value = get(p, 'Imagem 4') || '';  
   
-  document.getElementById('ordem').value = get(p, 'Ordem') || '0';
+  document.getElementById('ordem').value = linha;
   document.getElementById('destaque').value = get(p, 'Destaque') || 'Não';
   
   abrirModal();
+}
+
+// Próxima linha livre da planilha (é também a Ordem do produto novo)
+function proximaLinha() {
+  return produtos.reduce((m, x) => Math.max(m, x._linha || 1), 1) + 1;
 }
 
 // ============ SALVAR ============
@@ -876,6 +914,7 @@ async function salvarProduto() {
   }
   
   // ✅ CORRIGIDO: Objeto com TODAS as 20 colunas exatas da planilha
+  const numOrdem = linha ? parseInt(linha) : proximaLinha();
   const produto = {
     'Ativo': document.getElementById('ativo').value,
     'Tipo': document.getElementById('tipo').value.trim(),
@@ -895,7 +934,7 @@ async function salvarProduto() {
     'Imagem 2': document.getElementById('imagem2').value.trim(),
     'Imagem 3': document.getElementById('imagem3').value.trim(),
     'Imagem 4': document.getElementById('imagem4').value.trim(),
-    'Ordem': document.getElementById('ordem').value.trim(),
+    'Ordem': String(numOrdem),
     'Destaque': document.getElementById('destaque').value,
   };
   
