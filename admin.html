@@ -443,7 +443,7 @@ function aplicarLocal(acao, linha, produto) {
 }
 
 async function carregarProdutos() {
-  mostrarMensagem('Carregando produtos...');
+  mostrarCarregando();
   const direto = await buscarTextoDireto();
   if (direto) {
     produtos = parseCSV(direto);
@@ -557,6 +557,14 @@ function atualizarTotal(exibidos) {
 function mostrarMensagem(msg) {
   document.getElementById('corpoTabela').innerHTML = `<tr><td colspan="7" class="vazio">${escapeHtml(msg)}</td></tr>`;
   document.getElementById('listaCards').innerHTML = `<div class="vazio">${escapeHtml(msg)}</div>`;
+  document.getElementById('totalProdutos').textContent = '';
+}
+
+// Círculo com três pontinhos girando enquanto os produtos carregam
+function mostrarCarregando() {
+  const giro = '<span class="spinner3" role="status" aria-label="Carregando produtos"><i></i><i></i><i></i></span>';
+  document.getElementById('corpoTabela').innerHTML = `<tr><td colspan="7" class="vazio">${giro}</td></tr>`;
+  document.getElementById('listaCards').innerHTML = `<div class="vazio">${giro}</div>`;
   document.getElementById('totalProdutos').textContent = '';
 }
 
