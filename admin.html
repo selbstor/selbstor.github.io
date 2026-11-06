@@ -127,7 +127,7 @@
   .busca-linha { display: flex; gap: 10px; flex: 1; min-width: 200px; }
   .filtros .busca-linha input { flex: 1; min-width: 0; }
   .btn-recarregar-mobile { display: none; flex-shrink: 0; }
-  .total-produtos { text-align: left; color: #888; font-size: 0.8rem; line-height: 1.2; padding: 2px 4px 6px; }
+  .total-produtos { text-align: right; color: #888; font-size: 0.8rem; line-height: 1.2; padding: 2px 4px 6px; }
 
   /* ===== Botão X para limpar campos ===== */
   .campo-limpar { position: relative; display: block; }
@@ -429,6 +429,7 @@ var ACHADINHOS = {
 const URL_GRAVAR_PRODUTOS = ACHADINHOS.registrar_cliques;
 let produtos = [];
 let produtoEditando = null;
+let linhaCabecalho = 1; // linha (1-based) do cabeçalho na planilha; a Ordem de um produto = linha - linhaCabecalho
 
 // ============ CARREGAR ============
 // Lê a planilha direto pelo Apps Script (sempre atualizada, sem o atraso da publicação do Google).
@@ -525,6 +526,7 @@ function parseCSV(texto) {
   });
   if (ic === -1) ic = 0;
   const cab = regs[ic];
+  linhaCabecalho = ic + 1;
   const out = [];
   for (let i = ic + 1; i < regs.length; i++) {
     const cols = regs[i];
@@ -635,7 +637,7 @@ function renderizarTabela(manterPagina) {
 
   const dados = filtrados.map(p => ({
     linha: p._linha,
-    ordem: parseInt(get(p, 'Ordem')) || p._linha,
+    ordem: parseInt(get(p, 'Ordem')) || ordemDaLinha(p._linha),
     nome: get(p, 'Nome') || '(sem nome)',
     img: (get(p, 'Imagem 1', 'Imagem') || '').trim(),
     plat: get(p, 'Plataforma') || '',
@@ -823,7 +825,7 @@ function novoProduto() {
   document.getElementById('modalTitulo').textContent = 'Novo Produto';
   document.getElementById('formProduto').reset();
   document.getElementById('campoLinha').value = '';
-  document.getElementById('ordem').value = proximaLinha();
+  document.getElementById('ordem').value = proximaOrdem();
   abrirModal();
 }
 
@@ -860,16 +862,19 @@ function editar(linha) {
   document.getElementById('imagem3').value = get(p, 'Imagem 3') || '';
   document.getElementById('imagem4').value = get(p, 'Imagem 4') || '';  
   
-  document.getElementById('ordem').value = get(p, 'Ordem') || linha;
+  document.getElementById('ordem').value = get(p, 'Ordem') || ordemDaLinha(linha);
   document.getElementById('destaque').value = get(p, 'Destaque') || 'Não';
   
   abrirModal();
 }
 
-// Próxima linha livre da planilha (é também a Ordem do produto novo)
+// Próxima linha livre da planilha
 function proximaLinha() {
   return produtos.reduce((m, x) => Math.max(m, x._linha || 1), 1) + 1;
 }
+// Ordem padrão = posição do produto na lista (1 = primeiro produto, logo abaixo do cabeçalho)
+function ordemDaLinha(linha) { return linha - linhaCabecalho; }
+function proximaOrdem() { return ordemDaLinha(proximaLinha()); }
 
 // ============ SALVAR ============
 document.getElementById('formProduto').addEventListener('submit', async (e) => {
@@ -902,7 +907,7 @@ async function salvarProduto() {
   }
   
   // ✅ CORRIGIDO: Objeto com TODAS as 20 colunas exatas da planilha
-  const numOrdem = parseInt(document.getElementById('ordem').value) || (linha ? parseInt(linha) : proximaLinha());
+  const numOrdem = parseInt(document.getElementById('ordem').value) || (linha ? ordemDaLinha(parseInt(linha)) : proximaOrdem());
   const produto = {
     'Ativo': document.getElementById('ativo').value,
     'Tipo': document.getElementById('tipo').value.trim(),
