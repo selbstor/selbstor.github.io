@@ -1808,7 +1808,14 @@
   </div>
 
   <!-- Config (external file) -->
-  <script>document.write('<script src="config.js?_t=' + Date.now() + '"><\/script>');</script>
+  <script>
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQXEV5BLI2tsC9SMHeNynF8J1R2el99yAoGX32VHUNv04_Cg8fPchDBYKTlFqoqNZ_HA/exec";
+    const ACHADINHOS = {
+      planilha_configuracoes: APPS_SCRIPT_URL + "?acao=config",
+      planilha_catalogo: APPS_SCRIPT_URL + "?acao=listar",
+      registrar_cliques: APPS_SCRIPT_URL
+    };
+  </script>
 
   <script>
     // ============================================
