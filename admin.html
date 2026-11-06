@@ -56,6 +56,15 @@
   .form-acoes { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
   .toast { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 2000; transition: all 0.3s; }
   .toast.sucesso { background: #27ae60; } .toast.erro { background: #e74c3c; } .toast.oculto { opacity: 0; transform: translateY(20px); pointer-events: none; }
+  /* Círculo com três pontinhos girando (substitui a mensagem de salvar) */
+  .toast.carregando { background: transparent; box-shadow: none; padding: 0; }
+  .spinner3 { display: inline-block; position: relative; width: 48px; height: 48px; border-radius: 50%; background: #3498db; box-shadow: 0 4px 12px rgba(0,0,0,0.25); animation: girar3 1s linear infinite; }
+  .spinner3 i { position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: #fff; }
+  .spinner3 i:nth-child(1) { transform: rotate(0deg) translateY(-15px); }
+  .spinner3 i:nth-child(2) { transform: rotate(120deg) translateY(-15px); }
+  .spinner3 i:nth-child(3) { transform: rotate(240deg) translateY(-15px); }
+  @keyframes girar3 { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spinner3 { animation-duration: 3s; } }
   
   /* ✅ CAMPOS OCULTOS */
   .campo-oculto { display: none !important; }
@@ -831,7 +840,7 @@ async function salvarProduto() {
   }
   if (arquivo) {
     try {
-      toast('⏳ Aguarde...', '', true);
+      toast('Salvando...', 'carregando', true);
       urlImagem = await enviarImagem(arquivo);
     } catch (err) {
       console.error(err);
@@ -871,7 +880,7 @@ async function salvarProduto() {
   };
   
   try {
-    toast('💾 Salvando...', '');
+    toast('Salvando...', 'carregando', true);
     const urlEnvio = `${URL_GRAVAR_PRODUTOS}?data=${encodeURIComponent(JSON.stringify(dados))}`;
     const resp = await fetch(urlEnvio, { method: 'GET' });
     const texto = await resp.text();
@@ -935,7 +944,11 @@ let toastTimer = null;
 function toast(msg, tipo, fixo) {
   const t = document.getElementById('toast');
   if (!t) return;
-  t.textContent = msg;
+  if (tipo === 'carregando') {
+    t.innerHTML = '<span class="spinner3" role="status" aria-label="' + msg + '"><i></i><i></i><i></i></span>';
+  } else {
+    t.textContent = msg;
+  }
   t.className = 'toast ' + (tipo || '');
   t.classList.remove('oculto');
   clearTimeout(toastTimer);
