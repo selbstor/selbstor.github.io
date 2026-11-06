@@ -56,15 +56,20 @@
   .form-acoes { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
   .toast { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 2000; transition: all 0.3s; }
   .toast.sucesso { background: #27ae60; } .toast.erro { background: #e74c3c; } .toast.oculto { opacity: 0; transform: translateY(20px); pointer-events: none; }
-  /* Círculo com três pontinhos girando (substitui a mensagem de salvar) */
-  .toast.carregando { background: transparent; box-shadow: none; padding: 0; }
-  .spinner3 { display: inline-block; position: relative; width: 48px; height: 48px; border-radius: 50%; background: #3498db; box-shadow: 0 4px 12px rgba(0,0,0,0.25); animation: girar3 1s linear infinite; }
-  .spinner3 i { position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: #fff; }
-  .spinner3 i:nth-child(1) { transform: rotate(0deg) translateY(-15px); }
-  .spinner3 i:nth-child(2) { transform: rotate(120deg) translateY(-15px); }
-  .spinner3 i:nth-child(3) { transform: rotate(240deg) translateY(-15px); }
+  /* Anel girando com três pontinhos no centro */
+  .spin3 { --cor: #3498db; --trilho: #dfe4ea; position: relative; display: inline-block; width: 60px; height: 60px; }
+  .spin3 .trilho { position: absolute; inset: 0; border-radius: 50%; border: 5px solid var(--trilho); box-sizing: border-box; }
+  .spin3 .anel { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(var(--cor) 0deg 120deg, transparent 120deg 360deg); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px)); mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px)); animation: girar3 1s linear infinite; }
+  .spin3 .pontos { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .spin3 .pontos i { width: 8px; height: 8px; border-radius: 50%; background: var(--cor); animation: pulso3 1.2s ease-in-out infinite; }
+  .spin3 .pontos i:nth-child(2) { animation-delay: 0.15s; } .spin3 .pontos i:nth-child(3) { animation-delay: 0.3s; }
   @keyframes girar3 { to { transform: rotate(360deg); } }
-  @media (prefers-reduced-motion: reduce) { .spinner3 { animation-duration: 3s; } }
+  @keyframes pulso3 { 0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
+  @media (prefers-reduced-motion: reduce) { .spin3 .anel { animation-duration: 3s; } }
+  /* Ao salvar: caixa centralizada com o anel e o texto "Salvando..." */
+  .toast.carregando { top: 50%; left: 50%; right: auto; bottom: auto; transform: translate(-50%, -50%); background: rgba(70,70,70,0.92); padding: 22px 32px 18px; border-radius: 18px; box-shadow: 0 8px 28px rgba(0,0,0,0.35); display: flex; flex-direction: column; align-items: center; gap: 14px; min-width: 150px; }
+  .toast.carregando .spin3 { --trilho: rgba(255,255,255,0.3); width: 64px; height: 64px; }
+  .toast.carregando .hud-txt { font-size: 1.2rem; font-weight: 700; color: #fff; }
   
   /* ✅ CAMPOS OCULTOS */
   .campo-oculto { display: none !important; }
@@ -562,7 +567,7 @@ function mostrarMensagem(msg) {
 
 // Círculo com três pontinhos girando enquanto os produtos carregam
 function mostrarCarregando() {
-  const giro = '<span class="spinner3" role="status" aria-label="Carregando produtos"><i></i><i></i><i></i></span>';
+  const giro = '<span class="spin3" role="status" aria-label="Carregando produtos"><span class="trilho"></span><span class="anel"></span><span class="pontos"><i></i><i></i><i></i></span></span>';
   document.getElementById('corpoTabela').innerHTML = `<tr><td colspan="7" class="vazio">${giro}</td></tr>`;
   document.getElementById('listaCards').innerHTML = `<div class="vazio">${giro}</div>`;
   document.getElementById('totalProdutos').textContent = '';
@@ -953,7 +958,7 @@ function toast(msg, tipo, fixo) {
   const t = document.getElementById('toast');
   if (!t) return;
   if (tipo === 'carregando') {
-    t.innerHTML = '<span class="spinner3" role="status" aria-label="' + msg + '"><i></i><i></i><i></i></span>';
+    t.innerHTML = '<span class="spin3" role="status" aria-label="' + msg + '"><span class="trilho"></span><span class="anel"></span><span class="pontos"><i></i><i></i><i></i></span></span>' + '<span class="hud-txt">' + msg + '</span>';
   } else {
     t.textContent = msg;
   }
