@@ -1832,6 +1832,14 @@
     // ============================================
     // CSV PARSER
     // ============================================
+    // Os dados vêm do Apps Script em JSON: { ok: true, dados: [[linha1...], [linha2...]] }
+    function lerTabelaJson(text) {
+      try {
+        const j = JSON.parse(text);
+        return (j && j.ok && Array.isArray(j.dados)) ? j.dados : [];
+      } catch (e) { return []; }
+    }
+
     function parseCSV(text) {
       const lines = [];
       let current = '';
@@ -1866,7 +1874,7 @@
     async function loadConfig() {
       const res = await fetch(ACHADINHOS.planilha_configuracoes + '&_t=' + Date.now(), { cache: 'no-store' });
       const text = await res.text();
-      const rows = parseCSV(text);
+      const rows = lerTabelaJson(text);
 
       const cfg = {};
 
@@ -1943,7 +1951,7 @@
         let txt = await r.text();
         if (txt.charCodeAt(0) === 0xFEFF) txt = txt.slice(1);
         const c = txt.charAt(0);
-        if (!txt || c === '{' || c === '<' || txt === catalogoTextoAtual) return;
+        if (!txt || c === '<' || txt === catalogoTextoAtual) return;
         const anteriores = PRODUCTS;
         const antes = JSON.stringify(anteriores);
         aplicarCatalogo(txt);
@@ -1958,7 +1966,7 @@
     }
 
     function aplicarCatalogo(text) {
-      const rows = parseCSV(text);
+      const rows = lerTabelaJson(text);
 
       const products = [];
       var colMin = -1, colMax = -1, colUpd = -1;
