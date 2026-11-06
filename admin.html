@@ -214,6 +214,19 @@
     .modal { max-height: 100vh; max-height: 100dvh; border-radius: 0; }
     .modal-header { border-radius: 0; }
   }
+  /* ===== Lupa dentro do campo de busca ===== */
+  .campo-busca::before { content: ''; position: absolute; left: 12px; top: 50%; width: 18px; height: 18px; transform: translateY(-50%); background: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") no-repeat center / contain; pointer-events: none; z-index: 1; }
+  .filtros .campo-busca input { padding-left: 38px; }
+
+  /* ===== Celular: botão "+ Novo" na mesma linha do logotipo, à direita ===== */
+  @media (max-width: 700px) {
+    header { display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 10px; row-gap: 8px; }
+    .titulo-bloco { display: contents; }
+    .marca { grid-column: 1; grid-row: 1; min-width: 0; }
+    .acoes-topo { grid-column: 2; grid-row: 1; justify-self: end; align-self: center; flex-wrap: nowrap; }
+    header h1 { grid-column: 1 / -1; grid-row: 2; }
+  }
+
 </style>
 </head>
 <body>
@@ -1128,6 +1141,7 @@ function adicionarBotaoLimpar(input) {
   if (!input.getAttribute('placeholder')) input.setAttribute('placeholder', ' ');
   const wrap = document.createElement('div');
   wrap.className = 'campo-limpar';
+  if (input.id === 'busca') wrap.classList.add('campo-busca');
   input.parentNode.insertBefore(wrap, input);
   wrap.appendChild(input);
   const btn = document.createElement('button');
