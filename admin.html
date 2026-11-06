@@ -242,11 +242,9 @@
     .fechar { width: 40px; height: 40px; font-size: 1.6rem; }
   }
 
-  /* ===== Número da ordem (linha da planilha) no card ===== */
-  .card-cat-linha { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
-  .card-cat-linha .card-cat { margin-top: 0; flex: 1; min-width: 0; }
-  .card-ordem { flex-shrink: 0; font-size: 0.75rem; font-weight: 700; color: #2575b3; background: #eaf4fc; border-radius: 10px; padding: 1px 8px; }
-  #ordem[readonly] { background: #f1f3f5; color: #666; }
+  /* ===== Número da ordem no card: na linha do nome, acima dos três pontinhos ===== */
+  .card-produto { position: relative; }
+  .card-ordem { position: absolute; top: 10px; right: 32px; transform: translateX(50%); font-size: 0.75rem; font-weight: 700; line-height: 1.4; color: #2575b3; background: #eaf4fc; border-radius: 10px; padding: 0 8px; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -390,7 +388,7 @@
       <div class="form-secao">
         <h3>⚙️ Configurações</h3>
         <div class="form-linha">
-          <div class="form-grupo"><label>Ordem (nº da linha na planilha)</label><input type="number" id="ordem" inputmode="numeric" value="0" readonly></div>
+          <div class="form-grupo"><label>Ordem (posição na loja)</label><input type="number" id="ordem" inputmode="numeric" min="1" value="0"></div>
           <div class="form-grupo"><label>Destaque?</label>
             <select id="destaque"><option value="Não">Não</option><option value="Sim">Sim</option></select>
           </div>
@@ -474,7 +472,7 @@ function aplicarLocal(acao, linha, produto) {
     if (p) Object.assign(p, produto);
   } else if (acao === 'excluir') {
     produtos = produtos.filter(x => x._linha !== linha);
-    produtos.forEach(x => { if (x._linha > linha) { x._linha--; x['Ordem'] = String(x._linha); } });
+    produtos.forEach(x => { if (x._linha > linha) x._linha--; });
   }
   atualizarFiltroCategorias();
   renderizarTabela(true);
@@ -637,6 +635,7 @@ function renderizarTabela(manterPagina) {
 
   const dados = filtrados.map(p => ({
     linha: p._linha,
+    ordem: parseInt(get(p, 'Ordem')) || p._linha,
     nome: get(p, 'Nome') || '(sem nome)',
     img: (get(p, 'Imagem 1', 'Imagem') || '').trim(),
     plat: get(p, 'Plataforma') || '',
@@ -752,7 +751,7 @@ function cardHTML(d) {
         <div class="card-img">${comLink(imgHtml, d.link)}</div>
         <div class="card-info">
           <div class="card-nome">${escapeHtml(d.nome)}</div>
-          <div class="card-cat-linha"><div class="card-cat">${escapeHtml(d.plat ? d.plat + ' · ' + d.cat : d.cat)}</div><span class="card-ordem" title="Ordem (linha na planilha)">#${d.linha}</span></div>
+          <div class="card-cat">${escapeHtml(d.plat ? d.plat + ' · ' + d.cat : d.cat)}</div>
           ${d.preco ? `<div class="card-preco${d.preco.antigo ? ' antigo' : ''}">R$ ${d.preco.texto}${d.preco.antigo ? ' <small>(desatualizado)</small>' : ''}</div>` : ''}
           <div class="card-badges">
             <span class="badge badge-${d.destaque === 'Sim' ? 'destaque' : 'nao'}">${d.destaque === 'Sim' ? '★ Destaque' : 'Sem destaque'}</span>
@@ -760,6 +759,7 @@ function cardHTML(d) {
           </div>
         </div>
         ${botaoMenu(d.linha)}
+        <span class="card-ordem" title="Posição na loja (Ordem)">#${d.ordem}</span>
       </div>
     `;
 }
@@ -860,7 +860,7 @@ function editar(linha) {
   document.getElementById('imagem3').value = get(p, 'Imagem 3') || '';
   document.getElementById('imagem4').value = get(p, 'Imagem 4') || '';  
   
-  document.getElementById('ordem').value = linha;
+  document.getElementById('ordem').value = get(p, 'Ordem') || linha;
   document.getElementById('destaque').value = get(p, 'Destaque') || 'Não';
   
   abrirModal();
@@ -902,7 +902,7 @@ async function salvarProduto() {
   }
   
   // ✅ CORRIGIDO: Objeto com TODAS as 20 colunas exatas da planilha
-  const numOrdem = linha ? parseInt(linha) : proximaLinha();
+  const numOrdem = parseInt(document.getElementById('ordem').value) || (linha ? parseInt(linha) : proximaLinha());
   const produto = {
     'Ativo': document.getElementById('ativo').value,
     'Tipo': document.getElementById('tipo').value.trim(),
