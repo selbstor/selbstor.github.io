@@ -2374,7 +2374,7 @@
       var url = videoUrlFix(p.video);
       var inner = 'Vídeo<span class="video-play">' + PLAY_SVG + '</span>';
       if (url) {
-        return '<a class="video-btn" href="' + url + '" target="_blank" rel="noopener noreferrer" title="Assistir vídeo" onclick="event.stopPropagation();">' + inner + '</a>';
+        return '<a class="video-btn" href="' + url + '" target="_blank" rel="noopener noreferrer" title="Assistir vídeo" onclick="event.stopPropagation(); registrarClique(PRODUCTS[' + PRODUCTS.indexOf(p) + ']);">' + inner + '</a>';
       }
       // Sem link na planilha: não mostra o botão
       return '';
@@ -2603,6 +2603,9 @@
         };
         var url = ACHADINHOS.registrar_cliques + '?data=' + encodeURIComponent(JSON.stringify(dados));
         fetch(url, { mode: 'no-cors' });
+        var chave = chaveClique(p.nome);
+        CLIQUES[chave] = (CLIQUES[chave] || 0) + 1;
+        aplicarCliques();
       } catch (err) {
         console.log('Erro ao registrar clique:', err);
       }
