@@ -1278,20 +1278,22 @@
     /* Total de cliques no canto inferior esquerdo da imagem (só aparece se houver cliques) */
     .badge-cliques {
       position: absolute;
-      bottom: 10px;
-      left: 10px;
+      bottom: 3px;
+      left: 6px;
       z-index: 3;
-      background: rgba(255,255,255,0.94);
-      color: #555;
-      font-size: 0.7rem;
-      font-weight: 600;
-      padding: 3px 9px;
-      border-radius: 999px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+      background: none;
+      box-shadow: none;
+      padding: 0;
+      line-height: 1;
       pointer-events: none;
     }
-    .badge-cliques b { color: #E11D2E; font-size: 0.82rem; font-weight: 800; }
-    .badge-limited ~ .badge-cliques { bottom: 40px; }
+    .badge-cliques b {
+      color: #E11D2E;
+      font-size: 0.95rem;
+      font-weight: 800;
+      text-shadow: 0 0 2px #fff, 0 0 3px #fff, 0 0 4px #fff, 0 1px 2px rgba(255,255,255,0.9);
+    }
+    .badge-limited ~ .badge-cliques { bottom: 34px; }
 
         .channel-float {
       position: fixed;
