@@ -1,3920 +1,1261 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1769aa">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>Notas</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="nota-192x192.png">
-  <link rel="apple-touch-icon" href="nota-192x192.png">
-
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-
-  <style>
-    :root {
-      --azul: #1769aa;
-      --azul-escuro: #104f83;
-      --fundo: #f3f6fa;
-      --texto: #17212b;
-      --borda: #d6dee8;
-      --erro: #a61b1b;
-      --sucesso: #17633a;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      background: var(--fundo);
-      color: var(--texto);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      font-size: 18px;
-      line-height: 1.45;
-    }
-
-    main {
-      width: min(100%, 620px);
-      margin: 0 auto;
-      padding: 18px 16px calc(28px + env(safe-area-inset-bottom));
-    }
-
-    h1 {
-      margin: 4px 0 6px;
-      font-size: clamp(1.8rem, 7vw, 2.3rem);
-      line-height: 1.1;
-    }
-
-    .cartao {
-      background: #fff;
-      border: 1px solid var(--borda);
-      border-radius: 18px;
-      padding: 18px;
-      margin: 14px 0;
-      box-shadow: 0 3px 12px rgba(25, 45, 70, .05);
-    }
-
-    label,
-    .rotulo {
-      display: block;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    input,
-    select,
-    button {
-      font: inherit;
-      border-radius: 12px;
-    }
-
-    input,
-    select {
-      width: 100%;
-      min-height: 52px;
-      padding: 12px 14px;
-      border: 1px solid #aebdcd;
-      background: #fff;
-      color: var(--texto);
-    }
-
-    input:focus,
-    select:focus,
-    button:focus-visible {
-      outline: 3px solid #9cccf4;
-      outline-offset: 2px;
-    }
-
-    button {
-      border: 0;
-      min-height: 54px;
-      padding: 13px 16px;
-      font-weight: 750;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-
-    button:disabled {
-      opacity: .6;
-      cursor: wait;
-    }
-
-    .botao-principal {
-      width: 100%;
-      background: var(--azul);
-      color: #fff;
-      font-size: 1.2rem;
-      min-height: 64px;
-    }
-
-    .botao-principal:active {
-      background: var(--azul-escuro);
-    }
-
-    .botao-secundario {
-      background: #e7f1fb;
-      color: #124f80;
-    }
-
-    .botao-pequeno {
-      min-height: 38px;
-      padding: 7px 11px;
-      font-size: .88rem;
-      border-radius: 9px;
-    }
-
-    #areaCamera {
-      display: none;
-      margin-top: 16px;
-    }
-
-    #areaCamera.aberta {
-      display: block;
-    }
-
-    #cameraPalco {
-      position: relative;
-      width: 100%;
-      max-width: 460px;
-      margin: 0 auto;
-      overflow: hidden;
-      border-radius: 16px;
-      background: #101820;
-      line-height: 0;
-    }
-
-    #leitor {
-      width: 100%;
-      margin: 0 auto;
-      overflow: hidden;
-      background: #101820;
-      min-height: 80px;
-    }
-
-    #leitor video {
-      display: block;
-      width: 100% !important;
-      max-height: 65vh;
-      object-fit: cover !important;
-      border-radius: 12px;
-    }
-
-    #leitor img {
-      max-width: 100%;
-    }
-
-    #molduraLeitura {
-      position: absolute;
-      width: 76%;
-      aspect-ratio: 1 / 1;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      border: 3px solid rgba(255, 255, 255, .95);
-      border-radius: 22px;
-      box-shadow: 0 0 0 999px rgba(0, 0, 0, .28);
-      pointer-events: none;
-      z-index: 5;
-    }
-
-    #molduraLeitura::before,
-    #molduraLeitura::after {
-      content: "";
-      position: absolute;
-      inset: -3px;
-      border-radius: 22px;
-      border: 4px solid transparent;
-      pointer-events: none;
-    }
-
-    #molduraLeitura::before {
-      border-top-color: #fff;
-      border-left-color: #fff;
-    }
-
-    #molduraLeitura::after {
-      border-right-color: #fff;
-      border-bottom-color: #fff;
-    }
-
-    .acoes-camera {
-      display: flex;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .acoes-camera button {
-      flex: 1;
-    }
-
-    .dica {
-      font-size: .93rem;
-      color: #526171;
-      margin: 12px 0 0;
-    }
-
-    .linha {
-      display: flex;
-      gap: 10px;
-      align-items: stretch;
-    }
-
-    .linha input {
-      min-width: 0;
-      flex: 1;
-    }
-
-    .linha button {
-      flex-shrink: 0;
-    }
-
-    .mensagem {
-      display: none;
-      padding: 13px 14px;
-      border-radius: 12px;
-      margin: 14px 0;
-      overflow-wrap: anywhere;
-    }
-
-    .mensagem.visivel {
-      display: block;
-    }
-
-    .mensagem.erro {
-      background: #fff0f0;
-      color: var(--erro);
-      border: 1px solid #efb7b7;
-    }
-
-    .mensagem.info,
-    .mensagem.buscando {
-      background: #eaf4ff;
-      color: #154d7b;
-      border: 1px solid #b8d9f7;
-    }
-
-    .mensagem.sucesso {
-      background: #eaf8ef;
-      color: var(--sucesso);
-      border: 1px solid #b7e0c5;
-    }
-
-    /* Indicador de carregamento: círculo girando com três pontinhos */
-    #carregando {
-      display: none;
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      width: 84px;
-      height: 84px;
-      margin: -42px 0 0 -42px;
-      z-index: 50;
-      pointer-events: none;
-    }
-
-    #carregando.visivel {
-      display: block;
-    }
-
-    #carregando .anel {
-      position: absolute;
-      inset: 0;
-      border: 6px solid #cfe0f1;
-      border-top-color: var(--azul);
-      border-radius: 50%;
-      animation: girar .9s linear infinite;
-    }
-
-    #carregando .pontos {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    #carregando .pontos i {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: var(--azul);
-      animation: pulsar 1.2s ease-in-out infinite;
-    }
-
-    #carregando .pontos i:nth-child(2) { animation-delay: .2s; }
-    #carregando .pontos i:nth-child(3) { animation-delay: .4s; }
-
-    @keyframes girar { to { transform: rotate(360deg); } }
-    @keyframes pulsar {
-      0%, 80%, 100% { opacity: .25; transform: scale(.8); }
-      40% { opacity: 1; transform: scale(1.1); }
-    }
-
-    .barra-cupons {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin: 14px 2px 0;
-      font-weight: 700;
-      font-size: .95rem;
-      color: #34475a;
-    }
-
-    .cupom {
-      background: #fff;
-      border: 1px solid var(--borda);
-      border-radius: 18px;
-      padding: 14px;
-      margin: 12px 0;
-      box-shadow: 0 3px 12px rgba(25, 45, 70, .05);
-    }
-
-    .cupom-topo {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .cupom-loja {
-      font-weight: 800;
-      overflow-wrap: anywhere;
-    }
-
-    .cupom-esq {
-      min-width: 0;
-      flex: 1;
-    }
-
-    .cupom-cat {
-      margin-top: 10px;
-    }
-
-    .cupom-cat .rotulo,
-    .cupom-valor .rotulo {
-      margin: 0 0 4px;
-      font-size: .8rem;
-      color: #526171;
-    }
-
-    .cupom-cat input {
-      width: 100%;
-      min-height: 44px;
-      padding: 8px 10px;
-      background: #fff;
-    }
-
-    .apelido-status { display: block; min-height: 16px; margin-top: 3px; font-size: .78rem; color: #1b7a43; }
-    .apelido-status.erro { color: #b3261e; font-weight: 700; }
-
-    .cupom-cat select {
-      min-height: 44px;
-      padding: 8px 10px;
-    }
-
-    .cupom-datahora {
-      font-size: .85rem;
-      font-weight: 700;
-      color: #526171;
-      margin-bottom: 4px;
-    }
-
-    .cupom-pagto-linha {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-top: 12px;
-    }
-
-    .cupom-valor {
-      text-align: right;
-    }
-
-    .cupom-total {
-      font-size: 1.15rem;
-      font-weight: 800;
-      white-space: nowrap;
-    }
-
-    .cupom-meta {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .cupom-meta .rotulo {
-      margin: 0 0 4px;
-      font-size: .8rem;
-      color: #526171;
-    }
-
-    .cupom-pagamento {
-      font-weight: 700;
-    }
-
-    .cupom-seta {
-      width: 100%;
-      margin-top: 12px;
-      min-height: 40px;
-      padding: 6px 10px;
-      background: #e7f1fb;
-      color: #124f80;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: .92rem;
-    }
-
-    .cupom-seta svg {
-      transition: transform .2s ease;
-    }
-
-    .cupom.aberto .cupom-seta svg {
-      transform: rotate(180deg);
-    }
-
-    .cupom-itens {
-      display: none;
-      margin-top: 6px;
-    }
-
-    .cupom.aberto .cupom-itens {
-      display: block;
-    }
-
-    .resumo {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px 16px;
-      margin: 14px 0;
-      padding: 14px;
-      background: #f4f7fa;
-      border-radius: 12px;
-    }
-
-    .resumo > div {
-      min-width: 0;
-    }
-
-    #campoData,
-    #campoLoja {
-      grid-column: 1 / -1;
-    }
-
-    .resumo .rotulo {
-      margin: 0 0 4px;
-      font-size: .85rem;
-      color: #526171;
-    }
-
-    .valor-resumo {
-      font-size: 1.08rem;
-      font-weight: 750;
-      overflow-wrap: anywhere;
-    }
-
-    h2 {
-      font-size: 1.25rem;
-      margin: 0 0 12px;
-    }
-
-    .cabecalho-leitura {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .embutido #btnModoExcluir,
-    .embutido #btnProdutos,
-    .embutido #btnLista,
-    .embutido #cupons {
-      display: none !important;
-    }
-
-    main { padding-bottom: calc(122px + env(safe-area-inset-bottom)); }
-
-    #rodapeAcoes {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 40;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-      padding: 10px 16px calc(8px + env(safe-area-inset-bottom));
-      background: #fff;
-      border-top: 1px solid var(--borda);
-      box-shadow: 0 -4px 14px rgba(25, 45, 70, .08);
-    }
-
-    .botao-rodape {
-      flex: 1;
-      max-width: 220px;
-      min-height: 52px;
-      height: 52px;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      font-size: 1rem;
-    }
-
-    .botao-rodape-camera { background: var(--azul); color: #fff; padding: 0; }
-    .botao-rodape-produtos { background: #e7f1fb; color: #124f80; }
-    /* Fora do PliPag a câmera fica no topo das telas Produtos e Lista; a barra inferior só tem Produtos e Lista */
-    html:not(.embutido) #btnNovaCaptura { display: none; }
-    .acoes-topo { display: flex; align-items: center; gap: 8px; }
-
-    .filtro-produtos {
-      position: relative;
-      margin-top: 4px;
-    }
-
-    .filtro-produtos input {
-      padding-left: 40px;
-      padding-right: 46px;
-    }
-
-    .lupa-busca {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      pointer-events: none;
-    }
-
-    .filtro-produtos button {
-      position: absolute;
-      right: 6px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 38px;
-      min-height: 38px;
-      height: 38px;
-      padding: 0;
-      border-radius: 50%;
-      background: #e3e9f0;
-      color: #34475a;
-      font-size: 1rem;
-    }
-
-    .produto {
-      background: #fff;
-      border: 1px solid var(--borda);
-      border-radius: 14px;
-      padding: 12px 14px;
-      margin: 10px 0;
-      box-shadow: 0 2px 8px rgba(25, 45, 70, .04);
-    }
-
-    .produto-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-    .produto-nome { font-weight: 800; overflow-wrap: anywhere; }
-    .botao-rodape { position: relative; }
-    .botao-rodape.ativo { box-shadow: inset 0 0 0 2px #124f80; }
-    .contador-lista { position: absolute; top: 4px; right: 8px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: #c62828; color: #fff; font-size: .75rem; line-height: 20px; text-align: center; }
-    .produto { position: relative; }
-    .produto-marcar { position: absolute; top: 10px; right: 12px; display: flex; align-items: center; gap: 6px; font-size: .8rem; font-weight: 700; color: #124f80; cursor: pointer; }
-    .check-produto { width: 24px; height: 24px; min-height: 0; margin: 0; accent-color: #124f80; }
-    .topo-produtos { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-    .topo-produtos h2 { margin: 0; }
-    .menu-lista-ancora { position: relative; }
-    .menu-lista { position: absolute; right: 0; top: 50px; z-index: 30; background: #fff; border: 1px solid #cfe0f1; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.15); padding: 6px; min-width: 250px; white-space: nowrap; }
-    .menu-lista button { display: block; width: 100%; text-align: left; background: transparent; color: #17324d; font-weight: 700; padding: 12px; border-radius: 8px; min-height: 44px; }
-    .menu-lista button:active { background: #eaf4ff; }
-    .acoes-lista { display: flex; align-items: center; gap: 8px; }
-    .botao-limpar-lista { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 12px; background: #b3261e; color: #fff; }
-    .botao-lanterna { display: flex; align-items: center; justify-content: center; }
-    .botao-camera-pequeno.botao-lanterna.ligada { background: #f5b301; color: #3b2a00; }
-    .modal-fundo { position: fixed; inset: 0; z-index: 60; background: rgba(15, 30, 45, .55); display: none; align-items: center; justify-content: center; padding: 20px; }
-    .modal-fundo.visivel { display: flex; }
-    #confirmacao { z-index: 70; }
-    #apelidoModal { z-index: 65; align-items: center; justify-content: center; background: rgba(15, 30, 45, .55); }
-    #apelidoModal p { font-weight: 800; color: #17324d; margin-bottom: 14px; }
-    #apelidoModal .modal-caixa { border-top: 6px solid #f5b301; animation: surgirAviso .2s ease-out; }
-    @keyframes surgirAviso { from { transform: scale(.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-    .modal-caixa { width: 100%; max-width: 340px; background: #fff; border-radius: 20px; padding: 22px 20px 18px; text-align: center; box-shadow: 0 18px 50px rgba(0,0,0,.3); }
-    .modal-icone { width: 56px; height: 56px; margin: 0 auto 12px; border-radius: 50%; background: #fdeceb; display: flex; align-items: center; justify-content: center; }
-    .modal-caixa h3 { margin: 0 0 6px; font-size: 1.15rem; color: #17324d; }
-    .modal-caixa p { margin: 0 0 18px; color: #526171; font-size: .95rem; }
-    .modal-botoes { display: flex; gap: 10px; }
-    .modal-botoes button { flex: 1; height: 48px; min-height: 48px; border-radius: 12px; font-weight: 800; font-size: 1rem; }
-    .modal-cancelar { background: #e7f1fb; color: #124f80; }
-    .modal-confirmar { background: #b3261e; color: #fff; }
-    .sacola-folha { align-items: flex-end; padding: 0; }
-    .sacola-folha .modal-caixa { max-width: 520px; border-radius: 20px 20px 0 0; text-align: left; padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
-    .sacola-topo { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-    .sacola-topo h3 { margin: 0; }
-    .botao-sacola { position: relative; background: #e7f1fb; color: #124f80; }
-    .botao-sacola .contador-lista { top: -6px; right: -6px; }
-    .botao-link { background: transparent; color: #b3261e; font-weight: 700; min-height: 36px; padding: 0 6px; }
-    .item-lista { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid #e4ecf4; }
-    .item-lista:first-child { border-top: 0; }
-    .item-lista .info { flex: 1; min-width: 0; }
-    .item-lista .nome { font-weight: 800; overflow-wrap: anywhere; }
-    .item-lista .loja { font-size: .8rem; color: #526171; }
-    /* Licença: login por e-mail e tela de licença vencida */
-    html.sem-licenca main, html.sem-licenca #rodapeAcoes { visibility: hidden; }
-    .licenca-fundo { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; background: #f4f7fb; }
-    .licenca-fundo.visivel { display: flex; }
-    .licenca-caixa { width: 100%; max-width: 380px; background: #fff; border: 1px solid #e4ecf4; border-radius: 16px; padding: 22px 20px; box-shadow: 0 8px 28px rgba(15, 30, 45, .12); }
-    .licenca-caixa h2 { margin: 0 0 14px; font-size: 1.1rem; color: #15202b; }
-    .licenca-caixa label { display: block; font-size: .72rem; font-weight: 800; text-transform: uppercase; color: #526171; margin: 12px 0 4px; }
-    .licenca-caixa input { width: 100%; box-sizing: border-box; min-height: 44px; padding: 8px 12px; border: 1px solid #b9cde2; border-radius: 10px; font-size: 1rem; background: #fff; color: #15202b; }
-    .licenca-erro { color: #b3261e; font-size: .85rem; margin: 10px 0 0; }
-    .licenca-botoes { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
-    .licenca-bloqueio { border: 2px solid #c62828; text-align: center; }
-    .licenca-bloqueio p { color: #c62828; font-weight: 800; font-size: 1.05rem; line-height: 1.35; margin: 0 0 18px; }
-    #rodapeAcoes .rodape-licenca { margin-top: -2px; }
-    .rodape-licenca { flex: 0 0 100%; display: flex; align-items: center; justify-content: center; gap: 5px; padding-top: 6px; border-top: 1px solid #e4ecf4; font-size: .75rem; font-weight: 600; color: #526171; cursor: pointer; }
-    .rodape-licenca strong { color: #15202b; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60vw; }
-    .fila-notas { margin-top: 12px; }
-    .fila-notas .fila-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-    .fila-notas .fila-aviso { font-size: .8rem; color: #526171; margin-top: 4px; }
-    .fila-notas .fila-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px solid #e4ecf4; margin-top: 8px; }
-    .fila-notas .fila-item small { display: block; color: #526171; }
-    .fila-notas .fila-item .fila-erro { color: #b3261e; }
-    .fila-notas .fila-item button { background: #fdeceb; color: #b3261e; width: 34px; min-height: 34px; height: 34px; padding: 0; border-radius: 50%; font-weight: 800; flex: 0 0 auto; }
-    .btn-fila { flex: 0 0 auto; width: auto; min-height: 36px; height: 36px; padding: 0 14px; border-radius: 10px; background: #124f80; color: #fff; font-weight: 800; font-size: .85rem; }
-    .btn-fila:disabled { opacity: .55; }
-    .item-lista .apelido { font-size: .8rem; font-weight: 700; color: #124f80; }
-    .item-lista { flex-wrap: wrap; }
-    .item-lista .linha-atual { flex: 0 0 100%; display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
-    .item-lista .linha-atual label { font-size: .8rem; color: #526171; font-weight: 700; }
-    .item-lista .linha-atual input { width: 120px; min-height: 36px; padding: 4px 10px; text-align: right; font-weight: 800; border: 1px solid #b9cde2; border-radius: 10px; background: #fff; color: #124f80; font-size: 1rem; }
-    .total-lista .linha-total-atual { color: #124f80; margin-top: 4px; }
-    .item-lista .preco { font-weight: 800; color: #c62828; white-space: nowrap; }
-    .item-lista button { background: #fdeceb; color: #b3261e; width: 34px; min-height: 34px; height: 34px; padding: 0; border-radius: 50%; font-weight: 800; }
-    .total-lista { text-align: right; font-weight: 800; margin-top: 8px; border-top: 2px solid #cfe0f1; padding-top: 8px; }
-    .produto-nao-achado { color: #c62828 !important; font-weight: 700; }
-    .produto-apelido { font-size: .85rem; font-weight: 700; color: #124f80; margin-top: 2px; overflow-wrap: anywhere; }
-    .produto-data { font-size: .8rem; color: #526171; margin-bottom: 2px; }
-    .produto-endereco-linha { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
-    .produto-endereco-linha .produto-endereco { flex: 1; min-width: 0; margin-top: 0; }
-    .produto-mapa { flex: none; text-decoration: none; color: #124f80; font-weight: 800; font-size: 1rem; padding: 0 4px; }
-    .produto-endereco { font-size: .68rem; color: #7a8896; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .produto-meta { font-size: .85rem; color: #526171; margin-top: 3px; overflow-wrap: anywhere; }
-    .produto-valores {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 10px;
-      margin-top: 8px;
-      font-size: .95rem;
-    }
-    .produto-total { font-weight: 800; font-size: 1.05rem; white-space: nowrap; color: #c62828; margin-top: 2px; }
-
-    .acoes-topo {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    .botao-perigo {
-      background: #b42318 !important;
-    }
-
-    .botao-perigo.ativo {
-      outline: 3px solid #f4b4ad;
-    }
-
-
-    .cupom-linha-topo {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .cupom-excluir {
-      flex-shrink: 0;
-      width: 38px;
-      min-height: 38px;
-      height: 38px;
-      padding: 0;
-      border-radius: 10px;
-      background: #fdecea;
-      color: #b42318;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: -4px -4px 0 0;
-    }
-
-    .cupom-marcar {
-      width: 26px;
-      height: 26px;
-      min-height: 0;
-      flex-shrink: 0;
-      margin: 0;
-      accent-color: #b42318;
-    }
-
-    .cupom.marcado {
-      border-color: #b42318;
-      box-shadow: 0 0 0 2px #f4b4ad;
-    }
-
-    .cabecalho-leitura h2 {
-      margin: 0;
-    }
-
-    .botao-camera-pequeno {
-      flex-shrink: 0;
-      width: 44px;
-      min-height: 44px;
-      height: 44px;
-      padding: 0;
-      font-size: 1.3rem;
-      line-height: 1;
-      border-radius: 12px;
-      background: var(--azul);
-      color: #fff;
-    }
-
-    h3 {
-      font-size: 1.05rem;
-      margin: 18px 0 8px;
-    }
-
-    .item {
-      padding: 12px 0;
-      border-bottom: 1px solid #e5ebf1;
-    }
-
-    .item:last-child {
-      border-bottom: 0;
-    }
-
-    .item-nome {
-      font-weight: 700;
-      overflow-wrap: anywhere;
-    }
-
-    .item-detalhes {
-      color: #526171;
-      font-size: .92rem;
-      margin-top: 4px;
-    }
-
-    .pergunta-botoes {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .pergunta-botoes button {
-      min-height: 32px;
-      padding: 5px 10px;
-      line-height: 1.2;
-    }
-
-    .rodape {
-      display: none;
-      text-align: center;
-      color: #667586;
-      font-size: .82rem;
-      padding-top: 10px;
-    }
-
-    .rodape.visivel {
-      display: block;
-    }
-
-    @media (max-width: 380px) {
-      main {
-        padding-left: 11px;
-        padding-right: 11px;
-      }
-
-      .cartao {
-        padding: 14px;
-      }
-
-      .linha {
-        flex-direction: column;
-      }
-
-      .linha button {
-        width: 100%;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#f5f7fa">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<title>Gerenciar Produtos</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #333; padding: 20px; }
+  .container { max-width: 1200px; margin: 0 auto; }
+  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+  h1 { font-size: 1.6rem; color: #2c3e50; }
+  .titulo-bloco { display: flex; flex-direction: column; gap: 10px; }
+  .marca { display: flex; align-items: center; gap: 12px; }
+  .marca img { height: 52px; width: auto; max-width: 160px; border-radius: 10px; object-fit: contain; display: none; }
+  .marca span { font-weight: 700; font-size: 1.1rem; color: #2c3e50; }
+  .acoes-topo { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; }
+  .btn-primary { background: #3498db; color: white; } .btn-primary:hover { background: #2980b9; }
+  .btn-secondary { background: #ecf0f1; color: #2c3e50; } .btn-secondary:hover { background: #d5dbdb; }
+  .btn-success { background: #27ae60; color: white; }
+  .btn-sm { padding: 6px 12px; font-size: 0.85rem; } .btn-icono { background: transparent; padding: 4px 8px; }
+  .filtros { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .filtros input, .filtros select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem; }
+  .filtros input { flex: 1; min-width: 200px; }
+  table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+  th { background: #f8f9fa; font-weight: 600; color: #555; font-size: 0.85rem; }
+  td img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; }
+  .vazio { text-align: center; padding: 30px; color: #888; }
+  .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+  .badge-sim, .badge-destaque { background: #d4edda; color: #155724; }
+  .badge-nao { background: #f8d7da; color: #721c24; }
+  
+  .acoes { display: flex; gap: 5px; justify-content: center; align-items: center; height: 100%; }
+  td.acoes { vertical-align: middle !important; text-align: center; }
+  
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; backdrop-filter: blur(4px); }
+  .modal-overlay.oculto { display: none; }
+  .modal { background: white; border-radius: 12px; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; padding: 25px; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .modal-header h2 { font-size: 1.3rem; }
+  .fechar { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #888; }
+  .form-grupo { margin-bottom: 15px; }
+  .form-grupo label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.85rem; color: #555; }
+  .form-grupo input, .form-grupo select, .form-grupo textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem; font-family: inherit; }
+  .form-grupo textarea { resize: vertical; min-height: 80px; }
+  .form-linha { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-secao { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+  .form-secao h3 { font-size: 0.95rem; margin-bottom: 10px; color: #2c3e50; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px; }
+  .form-acoes { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+  .toast { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 2000; transition: all 0.3s; }
+  .toast.sucesso { background: #27ae60; } .toast.erro { background: #e74c3c; } .toast.oculto { opacity: 0; transform: translateY(20px); pointer-events: none; }
+  /* Anel girando com três pontinhos no centro */
+  .spin3 { --cor: #3498db; --trilho: #dfe4ea; position: relative; display: inline-block; width: 60px; height: 60px; }
+  .spin3 .trilho { position: absolute; inset: 0; border-radius: 50%; border: 5px solid var(--trilho); box-sizing: border-box; }
+  .spin3 .anel { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(var(--cor) 0deg 120deg, transparent 120deg 360deg); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px)); mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px)); animation: girar3 1s linear infinite; }
+  .spin3 .pontos { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .spin3 .pontos i { width: 8px; height: 8px; border-radius: 50%; background: var(--cor); animation: pulso3 1.2s ease-in-out infinite; }
+  .spin3 .pontos i:nth-child(2) { animation-delay: 0.15s; } .spin3 .pontos i:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes girar3 { to { transform: rotate(360deg); } }
+  @keyframes pulso3 { 0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
+  @media (prefers-reduced-motion: reduce) { .spin3 .anel { animation-duration: 3s; } }
+  /* Ao salvar: caixa centralizada com o anel e o texto "Salvando..." */
+  .toast.carregando { top: 50%; left: 50%; right: auto; bottom: auto; transform: translate(-50%, -50%); background: rgba(70,70,70,0.92); padding: 22px 32px 18px; border-radius: 18px; box-shadow: 0 8px 28px rgba(0,0,0,0.35); display: flex; flex-direction: column; align-items: center; gap: 14px; min-width: 150px; }
+  .toast.carregando .spin3 { --trilho: rgba(255,255,255,0.3); width: 64px; height: 64px; }
+  .toast.carregando .hud-txt { font-size: 1.2rem; font-weight: 700; color: #fff; }
+  
+  /* ✅ CAMPOS OCULTOS */
+  .campo-oculto { display: none !important; }
+
+  /* ===== Botão 3 pontinhos + menu de ações ===== */
+  td.acoes { display: table-cell; width: 70px; }
+  th.col-acoes { text-align: center; }
+  .btn-menu { background: transparent; border: none; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; font-size: 1.4rem; line-height: 1; color: #555; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s; }
+  .btn-menu:hover, .btn-menu:active { background: #ecf0f1; }
+  .menu-acoes { position: fixed; z-index: 1500; background: white; border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.2); min-width: 150px; padding: 6px; }
+  .menu-acoes.oculto { display: none; }
+  .menu-acoes button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 12px; border: none; background: transparent; cursor: pointer; font-size: 0.95rem; border-radius: 6px; text-align: left; color: #2c3e50; }
+  .menu-acoes button:hover, .menu-acoes button:active { background: #f1f3f5; }
+  .menu-acoes button.perigo { color: #e74c3c; }
+
+  /* ===== Cards (mobile) ===== */
+  .cards { display: none; flex-direction: column; gap: 12px; }
+  .card-produto { display: flex; align-items: center; gap: 12px; background: white; border-radius: 12px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .card-img { flex-shrink: 0; width: 64px; height: 64px; border-radius: 8px; background: #f1f3f5; display: flex; align-items: center; justify-content: center; overflow: hidden; color: #aaa; }
+  .card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .card-img a { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; color: inherit; text-decoration: none; }
+  td a { display: inline-block; line-height: 0; color: inherit; text-decoration: none; }
+  .card-info { flex: 1; min-width: 0; }
+  .card-nome { font-weight: 700; font-size: 0.95rem; color: #2c3e50; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: break-word; }
+  .card-cat { font-size: 0.8rem; color: #888; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-preco { font-size: 0.9rem; font-weight: 600; color: #27ae60; margin-top: 4px; }
+  .card-preco { color: #D90429; font-weight: 800; font-size: 1rem; margin-top: 3px; }
+  .card-preco.antigo { color: #999; font-weight: 700; }
+  .card-preco small { font-weight: 500; font-size: 0.7rem; }
+  .card-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .cards .vazio { background: white; border-radius: 12px; }
+
+  /* ===== Combobox de categoria ===== */
+  .combo { position: relative; }
+  .form-grupo .combo input { padding-right: 40px; }
+  .combo-seta { position: absolute; right: 0; top: 0; height: 100%; width: 40px; border: none; background: transparent; cursor: pointer; font-size: 1rem; color: #666; }
+  .combo-lista { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 50; background: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 6px 16px rgba(0,0,0,0.15); max-height: 200px; overflow-y: auto; }
+  .combo-lista.oculto { display: none; }
+  .combo-opcao, .combo-nova, .combo-vazio { padding: 10px 12px; font-size: 0.9rem; }
+  .combo-opcao { cursor: pointer; }
+  .combo-opcao:hover, .combo-opcao:active { background: #f1f3f5; }
+  .combo-nova, .combo-vazio { color: #888; border-top: 1px solid #eee; }
+
+  /* ===== Upload de imagem ===== */
+  .upload-linha { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .form-grupo label.btn-upload { display: inline-block; margin: 0; font-size: 0.85rem; color: #2c3e50; cursor: pointer; }
+  .nome-arquivo { font-size: 0.8rem; color: #888; word-break: break-all; }
+  .form-grupo input.input-arquivo { position: absolute; width: 1px; height: 1px; padding: 0; opacity: 0; pointer-events: none; }
+  .form-grupo input.input-link-img { margin-top: 10px; }
+  .preview-box { margin-top: 10px; }
+  .preview-box.oculto { display: none; }
+  .preview-box img { display: block; max-width: 100%; max-height: 180px; border-radius: 8px; border: 1px solid #eee; background: #f1f3f5; }
+
+  /* ===== Busca + recarregar (mobile) e total ===== */
+  .busca-linha { display: flex; gap: 10px; flex: 1; min-width: 200px; }
+  .filtros .busca-linha input { flex: 1; min-width: 0; }
+  .btn-recarregar-mobile { display: none; flex-shrink: 0; }
+  .total-produtos { text-align: right; color: #888; font-size: 0.8rem; line-height: 1.2; padding: 2px 4px 6px; }
+
+  /* ===== Botão X para limpar campos ===== */
+  .campo-limpar { position: relative; display: block; }
+  .campo-limpar input { width: 100%; min-width: 0; padding-right: 36px; }
+  .busca-linha .campo-limpar { flex: 1; min-width: 0; }
+  .btn-limpar { display: none; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; padding: 0; border: none; border-radius: 50%; background: #dfe3e6; color: #555; font-size: 18px; line-height: 1; align-items: center; justify-content: center; cursor: pointer; }
+  .btn-limpar:hover, .btn-limpar:active { background: #c9ced2; }
+  .campo-limpar input:not(:placeholder-shown) ~ .btn-limpar { display: flex; }
+  /* Campo do link da imagem fica oculto (o valor continua sendo usado pelo sistema) */
+  #imagem1 { display: none !important; }
+  .combo .campo-limpar input { padding-right: 72px; }
+  .combo .campo-limpar .btn-limpar { right: 40px; }
+  .preview-box { position: relative; display: inline-block; max-width: 100%; }
+  .btn-remover-img { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; padding: 0; border: none; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; font-size: 20px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+  @media (max-width: 700px) {
+    body { padding: 12px; }
+    .form-linha { grid-template-columns: 1fr; }
+    .filtros select { flex: 1; min-width: 140px; }
+    table { display: none; }
+    .cards { display: flex; }
+    .busca-linha { flex: 1 1 100%; }
+    .btn-recarregar-mobile { display: inline-block; }
+    #btnRecarregar { display: none; }
+  }
+
+  /* ===== Responsividade extra (Android e iPhone) ===== */
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body { -webkit-tap-highlight-color: transparent;
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-right: max(20px, env(safe-area-inset-right));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    padding-left: max(20px, env(safe-area-inset-left)); }
+  input[type=text], input[type=url], input[type=number], input[type=email], textarea { -webkit-appearance: none; appearance: none; }
+  body:has(.modal-overlay:not(.oculto)) { overflow: hidden; }
+  .modal { max-height: 90vh; max-height: 90dvh; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  .toast { max-width: calc(100vw - 32px); }
+
+  @media (max-width: 900px) {
+    th, td { padding: 10px 8px; }
+  }
+
+  @media (max-width: 700px) {
+    body { padding-top: max(12px, env(safe-area-inset-top)); padding-right: max(12px, env(safe-area-inset-right));
+      padding-bottom: max(12px, env(safe-area-inset-bottom)); padding-left: max(12px, env(safe-area-inset-left)); }
+    h1 { font-size: 1.2rem; }
+    header { gap: 8px; flex-direction: column; align-items: flex-start; }
+    .acoes-topo .btn { min-height: 0; }
+    .btn { min-height: 44px; }
+    .btn-sm { min-height: 40px; }
+    .filtros { padding: 12px; }
+    /* 16px evita o zoom automático do iPhone ao tocar nos campos */
+    .filtros input, .filtros select, .form-grupo input, .form-grupo select, .form-grupo textarea { font-size: 16px; min-height: 44px; }
+    .form-grupo textarea { min-height: 90px; }
+    .btn-menu { width: 44px; height: 44px; }
+    .card-produto { padding: 10px; gap: 10px; }
+    .menu-acoes button { min-height: 44px; }
+    .combo-opcao, .combo-nova, .combo-vazio { padding: 13px 12px; font-size: 1rem; }
+    .combo-seta { width: 44px; }
+    .form-grupo .combo input, .combo .campo-limpar input { padding-right: 80px; }
+    .combo .campo-limpar .btn-limpar { right: 44px; }
+
+    /* Formulário vira uma "folha" que sobe de baixo, ocupando quase a tela toda */
+    .modal-overlay { padding: 0; align-items: flex-end; }
+    .modal { max-width: none; border-radius: 16px 16px 0 0; max-height: 94vh; max-height: 94dvh; padding: 0 16px; }
+    .modal-header { position: sticky; top: 0; z-index: 2; background: #fff; margin: 0 -16px 14px; padding: 12px 16px; border-bottom: 1px solid #eee; border-radius: 16px 16px 0 0; }
+    .fechar { width: 44px; height: 44px; font-size: 1.8rem; }
+    .form-secao { padding: 12px; }
+    .form-acoes { position: sticky; bottom: 0; z-index: 2; background: #fff; margin: 16px -16px 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid #eee; }
+    .form-acoes .btn { flex: 1; }
+
+    .toast { left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); text-align: center; }
+  }
+
+  @media (max-width: 380px) {
+    h1 { font-size: 1.05rem; }
+    .card-img { width: 54px; height: 54px; }
+    .card-nome { font-size: 0.9rem; }
+  }
+
+  /* Celular deitado: formulário ocupa a tela inteira */
+  @media (max-height: 500px) and (orientation: landscape) {
+    .modal-overlay { align-items: stretch; }
+    .modal { max-height: 100vh; max-height: 100dvh; border-radius: 0; }
+    .modal-header { border-radius: 0; }
+  }
+  /* ===== Lupa dentro do campo de busca ===== */
+  .campo-busca::before { content: ''; position: absolute; left: 12px; top: 50%; width: 18px; height: 18px; transform: translateY(-50%); background: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") no-repeat center / contain; pointer-events: none; z-index: 1; }
+  .filtros .campo-busca input { padding-left: 38px; }
+
+  /* ===== Celular: botão "+ Novo" na mesma linha do logotipo, à direita ===== */
+  @media (max-width: 700px) {
+    header { display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 10px; row-gap: 8px; }
+    .titulo-bloco { display: contents; }
+    .marca { grid-column: 1; grid-row: 1; min-width: 0; }
+    .acoes-topo { grid-column: 2; grid-row: 1; justify-self: end; align-self: center; flex-wrap: nowrap; }
+    header h1 { grid-column: 1 / -1; grid-row: 2; }
+  }
+
+  /* ===== Título do formulário: faixa azul de ponta a ponta ===== */
+  .modal-header { position: sticky; top: 0; z-index: 2; background: linear-gradient(135deg, #3498db, #2575b3); border-bottom: none; }
+  .modal-header h2 { font-size: 1.3rem; font-weight: 800; color: #fff; letter-spacing: -0.01em; line-height: 1.2; }
+  .fechar { flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.22); color: #fff; font-size: 1.4rem; line-height: 1; display: flex; align-items: center; justify-content: center; }
+  .fechar:hover, .fechar:active { background: rgba(255,255,255,0.36); }
+  @media (min-width: 701px) { .modal-header { top: -25px; margin: -25px -25px 20px; padding: 18px 25px; border-radius: 12px 12px 0 0; } }
+
+  /* ===== Celular: formulário centralizado na tela (em vez de colado embaixo) ===== */
+  @media (max-width: 700px) and (min-height: 501px) {
+    .modal-overlay { padding: 14px; align-items: center; }
+    .modal { border-radius: 16px; max-height: calc(100vh - 28px); max-height: calc(100dvh - 28px); }
+    .modal-header { padding-top: 14px; padding-bottom: 14px; }
+    .fechar { width: 40px; height: 40px; font-size: 1.6rem; }
+  }
+
+  /* ===== Número da ordem no card: na linha do nome, acima dos três pontinhos ===== */
+  .card-produto { position: relative; }
+  .card-ordem { position: absolute; top: 10px; right: 32px; transform: translateX(50%); font-size: 0.75rem; font-weight: 700; line-height: 1.4; color: #2575b3; background: #eaf4fc; border-radius: 10px; padding: 0 8px; white-space: nowrap; }
+</style>
 </head>
-
 <body>
-<main>
-  <div id="telaLeitura">
-  <section class="cartao" aria-labelledby="tituloLeitura">
-    <div class="cabecalho-leitura">
-      <h2 id="tituloLeitura">Registrar compra</h2>
-      <div class="acoes-topo">
-        <button id="btnLanterna" class="botao-camera-pequeno botao-lanterna" type="button" style="display:none" aria-label="Lanterna" title="Lanterna"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h12v4l-2 3H8L6 6z"/><path d="M8 9h8v11a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2z"/><line x1="12" y1="13" x2="12" y2="16"/></svg></button>
-        <button id="btnModoExcluir" style="display:none" class="botao-camera-pequeno botao-perigo" type="button" aria-label="Excluir várias notas" title="Excluir várias notas"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+<div class="container">
+  <header>
+    <div class="titulo-bloco">
+      <!-- Logotipo e nome vêm da aba Configurações ("Logo (URL)" e "Nome da Loja") -->
+      <div class="marca" id="marcaAdmin" style="display:none">
+        <img id="logoAdmin" alt="">
+        <span id="nomeLojaAdmin"></span>
       </div>
+      <h1>🛍️ Gerenciador de Produtos</h1>
     </div>
-
-    <button id="btnLer" class="botao-principal" type="button" style="display:none">
-      📷 Capturar
-    </button>
-
-    <div id="areaCamera">
-      <div id="cameraPalco">
-        <div id="leitor"></div>
-        <div id="molduraLeitura" aria-hidden="true"></div>
-      </div>
-
-      <p id="estadoCamera" class="dica" aria-live="polite">
-        Aponte o QR Code para dentro do quadrado.
-      </p>
-
-      <div class="acoes-camera">
-        <button id="btnFecharCamera" class="botao-secundario" type="button" style="display:none">
-          Fechar câmera
-        </button>
-      </div>
+    <div class="acoes-topo">
+      <button id="btnNovo" class="btn btn-primary">+ Novo</button>
+      <button id="btnRecarregar" class="btn btn-secondary" title="Recarregar" aria-label="Recarregar">🔄</button>
     </div>
-
-    <div id="entradaManualLink" style="display:none">
-      <label for="linkNota">Ou cole o link da nota</label>
-
-      <div class="linha">
-        <input
-          id="linkNota"
-          type="url"
-          inputmode="url"
-          autocomplete="url"
-          placeholder="Cole aqui o link do QR Code"
-        >
-
-        <button id="btnLancar" class="botao-secundario" type="button">
-          Lançar
-        </button>
-      </div>
+  </header>
+  
+  <div class="filtros">
+    <div class="busca-linha">
+      <input type="text" id="busca" placeholder=" ">
+      <button type="button" id="btnRecarregarMobile" class="btn btn-secondary btn-recarregar-mobile" title="Recarregar" aria-label="Recarregar">🔄</button>
     </div>
-</section>
-
-  <div id="mensagem" class="mensagem" role="status" aria-live="polite"></div>
-
-  <section id="perguntaOutra" class="cartao" style="display:none" aria-live="polite">
-    <h2>Captura concluída</h2>
-    <p>Deseja realizar outra captura?</p>
-    <div class="pergunta-botoes">
-      <button id="btnOutraCaptura" class="botao-principal" type="button">
-        Sim
-      </button>
-      <button id="btnConcluirCapturas" class="botao-secundario" type="button">
-        Não
-      </button>
-    </div>
-  </section>
-
-  <!-- Notas lidas sem internet: ficam guardadas aqui e são lançadas quando a conexão voltar -->
-  <section id="filaNotas" class="cartao fila-notas" style="display:none" aria-live="polite">
-    <div class="fila-topo">
-      <strong id="filaTitulo"></strong>
-      <button id="btnFilaAgora" class="btn-fila" type="button">Lançar agora</button>
-    </div>
-    <div id="filaAviso" class="fila-aviso"></div>
-    <div id="filaLista"></div>
-  </section>
-
-  <section id="cupons" aria-label="Notas digitalizadas">
-    <div id="barraCupons" class="barra-cupons" style="display:none">
-      <span id="resumoCupons"></span>
-      <span id="acoesSelecao" style="display:none; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
-        <button id="btnSelecionarTodas" class="botao-secundario botao-pequeno" type="button">Selecionar todas</button>
-        <button id="btnCancelarSelecao" class="botao-secundario botao-pequeno" type="button">Cancelar</button>
-        <button id="btnExcluirSelecionadas" class="botao-pequeno botao-perigo" style="color:#fff" type="button">Excluir (0)</button>
-      </span>
-    </div>
-    <div id="listaCupons"></div>
-    <p id="fimCupons" class="dica" style="text-align:center"></p>
-  </section>
+    <select id="filtroStatus">
+      <option value="">Todos os status</option>
+      <option value="Sim">Ativos</option>
+      <option value="Não">Inativos</option>
+    </select>
+    <select id="filtroCategoria">
+      <option value="">Todas as categorias</option>
+    </select>
   </div>
 
-  <!-- Indicador de carregamento (fora de #telaLeitura para aparecer em todas as telas) -->
-  <div id="carregando" aria-hidden="true">
-    <div class="anel"></div>
-    <div class="pontos"><i></i><i></i><i></i></div>
-  </div>
+  <!-- Total de produtos: logo abaixo dos filtros -->
+  <div id="totalProdutos" class="total-produtos"></div>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Imagem</th>
+        <th>Nome</th>
+        <th>Plataforma</th>
+        <th>Categoria</th>
+        <th>Destaque</th>
+        <th>Ativo</th>
+        <th class="col-acoes">Ações</th>
+      </tr>
+    </thead>
+    <tbody id="corpoTabela"><tr><td colspan="7" class="vazio">Carregando produtos...</td></tr></tbody>
+  </table>
 
-  <!-- Tela de produtos (aba Itens) -->
-  <div id="telaProdutos" style="display:none">
-    <section class="cartao">
-      <div class="topo-produtos">
-        <h2>Lista</h2>
-        <div class="acoes-lista">
-        <button id="btnLimparLista" class="botao-limpar-lista" type="button" style="display:none" aria-label="Limpar lista" title="Limpar lista"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
-        <div class="menu-lista-ancora">
-          <button id="btnImprimirLista" class="botao-camera-pequeno" type="button" aria-label="Imprimir ou enviar a lista" title="Imprimir ou enviar a lista"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button>
-          <div id="menuLista" class="menu-lista" style="display:none">
-            <button id="btnImprimir" type="button">🖨️ Imprimir</button>
-            <button id="btnWhatsapp" type="button">💬 WhatsApp</button>
-            <button id="btnTelegram" type="button">✈️ Telegram</button>
+  <!-- Cards (visíveis só no celular) -->
+  <div id="listaCards" class="cards"></div>
+  <div id="sentinelaAdmin" style="height:1px"></div>
+
+</div>
+
+<!-- MODAL DE PRODUTO SIMPLIFICADO -->
+<div id="modal" class="modal-overlay oculto">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitulo">Novo Produto</h2>
+      <button type="button" class="fechar" onclick="fecharModal()" aria-label="Fechar">&times;</button>
+    </div>
+    <form id="formProduto">
+      <input type="hidden" id="campoLinha">
+      
+      <div class="form-secao">
+        <h3>📦 Dados Principais</h3>
+        <div class="form-grupo"><label>Nome do produto *</label><input type="text" id="nome" required></div>
+        
+        <!-- ✅ CAMPO OCULTO: Descrição -->
+        <div class="form-grupo campo-oculto"><label>Descrição</label><textarea id="descricao" placeholder=" "></textarea></div>
+
+        <!-- Preço manual: só aparece se na aba Configurações "Mostrar Campo Preço" estiver como SIM -->
+        <div class="form-grupo campo-oculto" id="grupoPreco"><label>Preço (R$)</label><input type="text" id="preco" inputmode="decimal" placeholder=" "></div>
+        
+        <div class="form-linha">
+          <div class="form-grupo"><label>Tipo</label>
+            <select id="tipo"><option value="FISICO">Físico</option><option value="DIGITAL">Digital</option></select>
+          </div>
+          <div class="form-grupo"><label>Plataforma</label><input type="text" id="plataforma" placeholder=" "></div>
+        </div>
+        <div class="form-linha">
+          <div class="form-grupo"><label>Categoria</label>
+            <div class="combo" id="comboCategoria">
+              <input type="text" id="categoria" autocomplete="off" placeholder=" ">
+              <button type="button" class="combo-seta" id="comboSeta" aria-label="Mostrar categorias">▾</button>
+              <div class="combo-lista oculto" id="listaCategorias"></div>
+            </div>
+          </div>
+          <div class="form-grupo"><label>Subcategoria</label><input type="text" id="subcategoria"></div>
+        </div>
+      </div>
+
+      <!-- ✅ SEÇÃO OCULTA: Preços e Cupons -->
+      <div class="form-secao campo-oculto">
+        <h3>💰 Preços e Cupons</h3>
+        <div class="form-grupo"><label>Preço Promocional (R$)</label><input type="text" id="precoPromocional" inputmode="decimal" placeholder=" "></div>
+        <div class="form-grupo"><label>Cupom de Desconto</label><input type="text" id="cupom" placeholder=" "></div>
+      </div>
+
+      <div class="form-secao">
+        <h3>🔗 Link e Conversão</h3>
+        <div class="form-grupo"><label>Link de Afiliado *</label><input type="url" autocapitalize="off" autocorrect="off" spellcheck="false" id="link" required></div>
+        
+        <!-- ✅ CAMPO OCULTO: Texto do Botão -->
+        <div class="form-grupo campo-oculto"><label>Texto do Botão</label><input type="text" id="textoBotao" placeholder=" "></div>
+        
+        <div class="form-grupo campo-oculto"><label>Validade da oferta</label><input type="text" id="validade" placeholder=" "></div>
+      </div>
+
+      <div class="form-secao">
+        <h3>🖼️ Imagens e Mídia</h3>
+        <div class="form-grupo">
+          <label>Imagem *</label>
+          <div class="upload-linha">
+            <label for="imagemArquivo" class="btn btn-secondary btn-sm btn-upload">📁 Escolher imagem</label>
+            <span id="nomeArquivo" class="nome-arquivo">Nenhuma imagem selecionada</span>
+            <input type="file" id="imagemArquivo" accept="image/*" class="input-arquivo">
+          </div>
+          <div id="previewBox" class="preview-box oculto">
+            <img id="imagemPreview" alt="Pré-visualização">
+            <button type="button" id="btnRemoverImagem" class="btn-remover-img" aria-label="Remover imagem" title="Remover imagem">×</button>
+          </div>
+          <input type="url" autocapitalize="off" autocorrect="off" spellcheck="false" id="imagem1" class="input-link-img" placeholder=" ">
+        </div>
+        
+        <!-- ✅ CAMPOS OCULTOS: Imagens 2, 3, 4 e Vídeo -->
+        <div class="form-linha campo-oculto">
+          <div class="form-grupo"><label>Imagem 2</label><input type="url" autocapitalize="off" autocorrect="off" spellcheck="false" id="imagem2"></div>
+          <div class="form-grupo"><label>Imagem 3</label><input type="url" autocapitalize="off" autocorrect="off" spellcheck="false" id="imagem3"></div>
+        </div>
+        <div class="form-grupo campo-oculto"><label>Imagem 4</label><input type="url" autocapitalize="off" autocorrect="off" spellcheck="false" id="imagem4"></div>
+
+        <!-- ✅ CAMPO VISÍVEL: Vídeo -->
+        <div class="form-grupo"><label>URL do Vídeo</label><input type="url" autocapitalize="off" autocorrect="off" spellcheck="false" id="video" placeholder=" "></div>
+      </div>
+
+      <div class="form-secao">
+        <h3>⚙️ Configurações</h3>
+        <div class="form-linha">
+          <div class="form-grupo"><label>Ordem (posição na loja)</label><input type="number" id="ordem" inputmode="numeric" min="1" value="0"></div>
+          <div class="form-grupo"><label>Destaque?</label>
+            <select id="destaque"><option value="Não">Não</option><option value="Sim">Sim</option></select>
           </div>
         </div>
+        <div class="form-grupo"><label>Ativo?</label>
+          <select id="ativo"><option value="Sim">Sim</option><option value="Não">Não</option></select>
         </div>
       </div>
-    </section>
-    <section class="cartao">
-      <div id="sacolaItens"></div>
-      <div id="sacolaTotal" class="total-lista"></div>
-    </section>
-  </div>
 
-  <!-- Tela Produtos: todos os produtos cadastrados, em ordem alfabética -->
-  <div id="telaTodos" style="display:none">
-    <section class="cartao">
-      <div class="topo-produtos">
-        <h2>Produtos</h2>
-        <button id="btnCameraTodos" class="botao-camera-pequeno" type="button" aria-label="Digitalizar nota" title="Digitalizar"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
+      <div class="form-acoes">
+        <button type="button" class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+        <button type="submit" class="btn btn-success">💾 Salvar</button>
       </div>
-      <div class="filtro-produtos">
-        <svg class="lupa-busca" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#6b7a89" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input id="filtroTodos" type="text" inputmode="search" autocomplete="off" placeholder="Buscar produto…" aria-label="Buscar produto">
-        <button id="btnLimparFiltroTodos" type="button" aria-label="Limpar busca" style="display:none">✕</button>
-      </div>
-      <div class="filtro-produtos" style="margin-top:10px">
-        <svg class="lupa-busca" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#6b7a89" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input id="filtroLojaTodos" type="text" inputmode="search" autocomplete="off" placeholder="Buscar loja ou apelido…" aria-label="Buscar por loja ou apelido">
-        <button id="btnLimparFiltroLojaTodos" type="button" aria-label="Limpar busca da loja" style="display:none">✕</button>
-      </div>
-      <div id="dicaTodos" class="dica">Digite as três primeiras letras de um produto ou do nome da loja ou apelido para buscar.</div>
-      <div id="resumoTodos" class="dica"></div>
-    </section>
-    <div id="listaTodos"></div>
-    <p id="fimTodos" class="dica" style="text-align:center"></p>
-  </div>
-
-  <div id="confirmacao" class="modal-fundo" role="dialog" aria-modal="true" aria-labelledby="confTitulo">
-  <div class="modal-caixa">
-    <div class="modal-icone"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#b3261e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></div>
-    <h3 id="confTitulo">Limpar a lista?</h3>
-    <p id="confTexto"></p>
-    <div class="modal-botoes">
-      <button id="confCancelar" class="modal-cancelar" type="button">Cancelar</button>
-      <button id="confOk" class="modal-confirmar" type="button">Limpar</button>
-    </div>
+    </form>
   </div>
 </div>
 
-<div id="apelidoModal" class="modal-fundo" role="dialog" aria-modal="true" aria-labelledby="apelidoTitulo">
-  <div class="modal-caixa">
-    <div class="modal-icone" style="background:#e7f1fb"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#124f80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg></div>
-    <h3 id="apelidoTitulo">Informe o apelido da loja</h3>
-    <p id="apelidoTexto"></p>
-    <label for="apelidoEntrada" style="display:block;text-align:left;font-size:.85rem;font-weight:700;color:#526171;margin:0 0 4px">Apelido</label>
-    <input id="apelidoEntrada" type="text" maxlength="60" autocomplete="off" style="width:100%;min-height:48px;margin:0 0 16px;background:#fff">
-    <div class="modal-botoes">
-      <button id="apelidoPular" class="modal-cancelar" type="button">Agora não</button>
-      <button id="apelidoSalvar" class="modal-confirmar" type="button" style="background:#124f80">Salvar</button>
-    </div>
-  </div>
+<!-- Menu flutuante de ações (três pontinhos) -->
+<div id="menuAcoes" class="menu-acoes oculto">
+  <button type="button" onclick="acaoMenu('editar')">✏️ Editar</button>
+  <button type="button" class="perigo" onclick="acaoMenu('excluir')">🗑️ Excluir</button>
 </div>
 
-<p id="ajudaCamera" class="rodape">
-    Se a câmera não abrir, permita o acesso à câmera nas configurações
-    do navegador e abra esta página por HTTPS.
-  </p>
-</main>
+<div id="toast" class="toast oculto"></div>
 
-<!-- Licença vencida ou não registrada -->
-<div id="licencaBloco" class="licenca-fundo" role="alertdialog" aria-modal="true" aria-labelledby="licencaMensagem">
-  <div class="licenca-caixa licenca-bloqueio">
-    <p id="licencaMensagem"></p>
-    <button id="licencaOutroEmail" class="botao-principal" type="button">Entrar com outro e-mail</button>
-  </div>
-</div>
-
-<!-- Acesso por e-mail e senha -->
-<div id="licencaModal" class="licenca-fundo" role="dialog" aria-modal="true" aria-labelledby="licencaTitulo">
-  <form id="licencaForm" class="licenca-caixa" autocomplete="on">
-    <h2 id="licencaTitulo">Acessar com e-mail</h2>
-    <label for="licencaEmail">E-mail cadastrado *</label>
-    <input type="email" id="licencaEmail" required autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false">
-    <label for="licencaSenha">Senha *</label>
-    <input type="password" id="licencaSenha" required maxlength="8" autocomplete="off" inputmode="numeric">
-    <p id="licencaErro" class="licenca-erro" style="display:none"></p>
-    <div class="licenca-botoes">
-      <button id="licencaCancelar" class="botao-secundario" type="button" style="display:none">Cancelar</button>
-      <button class="botao-principal" type="submit">Entrar</button>
-    </div>
-  </form>
-</div>
-
-<nav id="rodapeAcoes" aria-label="Ações">
-  <button id="btnNovaCaptura" class="botao-rodape botao-rodape-camera" type="button" aria-label="Voltar para a digitalização" title="Digitalizar"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>
-  <button id="btnProdutos" class="botao-rodape botao-rodape-produtos" type="button" aria-label="Produtos" title="Produtos"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg><span>Produtos</span></button>
-  <button id="btnLista" class="botao-rodape botao-rodape-produtos" type="button" aria-label="Lista" title="Lista"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg><span>Lista</span><b id="contadorRodape" class="contador-lista" style="display:none"></b></button>
-  <!-- Licenciado: toque para trocar de e-mail -->
-  <div id="rodapeLicenca" class="rodape-licenca" style="display:none" role="button" tabindex="0" title="Trocar de e-mail">
-    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5z"/></svg>
-    Licenciado para: <strong id="licencaNome"></strong>
-  </div>
-</nav>
-
+<!-- Scripts -->
 <script>
-"use strict";
+// ============================================
+// Configuração: tudo é lido e gravado pelo Apps Script (planilha id 1B9phPcYark74cP0Wn8dYpgayhXTYhnEYDdjnjnksv4k)
+// ============================================
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQXEV5BLI2tsC9SMHeNynF8J1R2el99yAoGX32VHUNv04_Cg8fPchDBYKTlFqoqNZ_HA/exec";
+var ACHADINHOS = {
+  planilha_configuracoes: APPS_SCRIPT_URL + "?acao=config",
+  planilha_catalogo: APPS_SCRIPT_URL + "?acao=listar",
+  registrar_cliques: APPS_SCRIPT_URL
+};
 
-/*
- * Quando esta página é aberta dentro do PliPag (botão Digitalizar do app principal),
- * ela só lê o QR Code: sem botões de excluir/atualizar e sem a lista de notas.
- */
-const EMBUTIDO = (function () {
-  try { return window.self !== window.top; } catch (_) { return true; }
-})();
-if (EMBUTIDO) document.documentElement.classList.add("embutido");
+const URL_GRAVAR_PRODUTOS = ACHADINHOS.registrar_cliques;
+let produtos = [];
+let produtoEditando = null;
+let linhaCabecalho = 1; // linha (1-based) do cabeçalho na planilha; a Ordem de um produto = linha - linhaCabecalho
 
-/* Torna a página instalável (service worker próprio, escopo /nota/) */
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js", { scope: "./" }).catch(() => {});
-  });
-}
-
-/*
- * ENDEREÇO DO GOOGLE APPS SCRIPT
- * Mantido conforme o arquivo enviado.
- */
-let URL_DO_MOTOR =
-  "https://script.google.com/macros/s/AKfycby7bScgVxp5wJxV0KZ26kvU0Awd8az-pMZXSg8kTM137bvnQxQxvgpXJ39zutU8gC_Xew/exec";
-
-const EH_IOS = /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
-  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-
-const CATEGORIAS = [
-  "Mercado",
-  "Farmácia",
-  "Combustível",
-  "Restaurante",
-  "Outros"
-];
-
-let leitorQr = null;
-let cameraAtiva = false;
-let cameraIniciando = false;
-let solicitouPararDuranteInicio = false;
-let processandoLeitura = false;
-let requisicaoEmAndamento = false;
-let lojaAtual = "";
-let lanternaLigada = false;
-let operacaoCamera = Promise.resolve();
-let inicioCameraPromise = null;
-let iosCameraStream = null;
-let iosCameraVideo = null;
-let iosCanvas = null;
-let iosContextoCanvas = null;
-let iosTimerLeitura = null;
-let iosZbar = null;
-let iosQuadro = 0;
-
-const el = (id) => document.getElementById(id);
-
-
-/* LICENÇA: cadastro de licenciados numa planilha do Google (usuarios.gs, no Apps Script), o mesmo do PliPag.
-   Login: e-mail cadastrado + senha do dia. A licença validada fica guardada no aparelho,
-   para o app abrir também sem internet. Dentro do PliPag (iframe) o acesso é controlado
-   pelo próprio PliPag e nada muda. */
-const MENSAGEM_LICENCA_VENCIDA =
-  "Cópia não registrada, entrar em contato com o desenvolvedor pelo telefone: 82987340685 para regularização da licença";
-const CHAVE_EMAIL_LICENCA = "nota_user_email";
-const CHAVE_LICENCA = "nota_licenca";
-const INTERVALO_REVALIDAR_LICENCA_MS = 5 * 60 * 1000;
-let LICENCA_OK = EMBUTIDO;
-let PLANILHA_ATIVA = "";
-let ultimaRevalidacaoLicenca = 0;
-
-function hojeISO() {
-  const d = new Date();
-  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-}
-
-function senhaDoDia() {
-  return hojeISO().replace(/-/g, "");   // AAAAMMDD
-}
-
-function lerEmailLicenca() {
-  try { return localStorage.getItem(CHAVE_EMAIL_LICENCA) || ""; } catch (_) { return ""; }
-}
-
-function lerLicencaGuardada() {
+// ============ CARREGAR ============
+// Lê a planilha direto pelo Apps Script (sempre atualizada, sem o atraso da publicação do Google).
+// Devolve o texto JSON ou null se o script não estiver preparado / falhar.
+async function buscarTextoDireto() {
   try {
-    const v = JSON.parse(localStorage.getItem(CHAVE_LICENCA) || "null");
-    return v && typeof v === "object" ? v : null;
-  } catch (_) { return null; }
-}
-
-// 'DD/MM/AAAA' (formato do cadastro) ou 'AAAA-MM-DD' -> Date; null se for inválida
-function parseDataLicenca(texto) {
-  const t = String(texto || "").trim();
-  let dia, mes, ano, m = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (m) { dia = +m[1]; mes = +m[2]; ano = +m[3]; }
-  else {
-    m = t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-    if (!m) return null;
-    ano = +m[1]; mes = +m[2]; dia = +m[3];
-  }
-  const d = new Date(ano, mes - 1, dia);
-  return (d.getFullYear() === ano && d.getMonth() === mes - 1 && d.getDate() === dia) ? d : null;
-}
-
-// Vale até o fim do dia da validade. Vazia = não vence. Data inválida = vencida.
-function validadeVencida(validade) {
-  const t = String(validade || "").trim();
-  if (!t) return false;
-  const d = parseDataLicenca(t);
-  if (!d) return true;
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-  return hoje > d;
-}
-
-// Licença guardada neste aparelho para o e-mail (a validade é conferida com a data do aparelho)
-function licencaGuardadaDe(email) {
-  const alvo = String(email || "").trim().toLowerCase();
-  const g = lerLicencaGuardada();
-  if (!alvo || !g || String(g.email || "").toLowerCase() !== alvo) return null;
-  return Object.assign({}, g, { vencida: !!g.vencidaServidor || validadeVencida(g.validade) });
-}
-
-function guardarLicenca(u) {
-  const g = {
-    email: String(u.email || "").toLowerCase(),
-    nome: u.nome || u.email,
-    planilha: u.planilha || "",
-    validade: u.validade || "",
-    vencidaServidor: !!u.vencida
-  };
-  try { localStorage.setItem(CHAVE_LICENCA, JSON.stringify(g)); } catch (_) {}
-  return g;
-}
-
-function mostrarNomeLicenca(nome) {
-  el("licencaNome").textContent = nome || lerEmailLicenca();
-  el("rodapeLicenca").style.display = "";
-}
-
-// Pergunta ao servidor (cadastro do PliPag). Não guarda nada.
-// Devolve { estado: "ok", dados } | { estado: "nao" } | { estado: "erro", semInternet, mensagem }
-async function consultarLicenca(email) {
-  try {
-    const d = await enviarMotor({ acao: "licenca", email: email });
-    if (d && d.ok === true && d.cadastrado === false) return { estado: "nao", detalhe: d.detalhe || "" };
-    if (d && d.ok === true && d.cadastrado === true && d.semAcesso) return { estado: "nao", semAcesso: true, detalhe: d.detalhe || "" };
-    if (d && d.ok === true && d.cadastrado === true && d.planilha) return { estado: "ok", dados: d };
-    return { estado: "erro", semInternet: false, mensagem: (d && d.aviso) || "Não foi possível validar a licença." };
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12000);
+    const r = await fetch(URL_GRAVAR_PRODUTOS + '?acao=listar&t=' + Date.now(), { cache: 'no-store', signal: ctrl.signal });
+    clearTimeout(timer);
+    if (!r.ok) return null;
+    let txt = await r.text();
+    if (txt.charCodeAt(0) === 0xFEFF) txt = txt.slice(1);
+    try {
+      const j = JSON.parse(txt);
+      if (!j.ok || !Array.isArray(j.dados) || j.dados.length < 2) return null;
+    } catch (e) { return null; }
+    return txt;
   } catch (e) {
-    return { estado: "erro", semInternet: !!(e && e.name === "SemConexao"), mensagem: (e && e.message) || "Não foi possível validar a licença." };
+    console.warn('Leitura direta indisponível, usando fallback:', e);
+    return null;
   }
 }
 
-// Usa a licença guardada no aparelho. true = liberado, "vencida" = vencida, false = não há licença guardada
-function aplicarLicenca(email) {
-  const u = licencaGuardadaDe(email);
-  if (!u) return false;
-  if (u.vencida) { LICENCA_OK = false; return "vencida"; }
-  PLANILHA_ATIVA = u.planilha || "";
-  LICENCA_OK = true;
-  mostrarNomeLicenca(u.nome || u.email);
-  document.documentElement.classList.remove("sem-licenca");
-  return true;
+// Atualiza a lista em segundo plano com os dados reais da planilha
+async function recarregarDireto() {
+  const txt = await buscarTextoDireto();
+  if (!txt) return;
+  produtos = parseCSV(txt);
+  atualizarFiltroCategorias();
+  renderizarTabela(true);
 }
 
-// Com o app já liberado, confere de vez em quando no cadastro (licença vencida, e-mail retirado, planilha trocada)
-async function revalidarLicenca() {
-  if (EMBUTIDO || !LICENCA_OK || navigator.onLine === false) return;
-  if (Date.now() - ultimaRevalidacaoLicenca < INTERVALO_REVALIDAR_LICENCA_MS) return;
-  ultimaRevalidacaoLicenca = Date.now();
+// Mostra na hora, sem esperar o servidor, o que acabou de ser salvo
+function aplicarLocal(acao, linha, produto) {
+  if (acao === 'novo') {
+    const ultima = produtos.reduce((m, x) => Math.max(m, x._linha || 1), 1);
+    produtos.push(Object.assign({ _linha: ultima + 1 }, produto));
+  } else if (acao === 'editar') {
+    const p = produtos.find(x => x._linha === linha);
+    if (p) Object.assign(p, produto);
+  } else if (acao === 'excluir') {
+    produtos = produtos.filter(x => x._linha !== linha);
+    produtos.forEach(x => { if (x._linha > linha) x._linha--; });
+  }
+  atualizarFiltroCategorias();
+  renderizarTabela(true);
+}
 
-  const r = await consultarLicenca(lerEmailLicenca());
-  if (r.estado === "nao") {
-    try { localStorage.removeItem(CHAVE_EMAIL_LICENCA); localStorage.removeItem(CHAVE_LICENCA); } catch (_) {}
-    location.reload();
+async function carregarProdutos() {
+  mostrarCarregando();
+  const direto = await buscarTextoDireto();
+  if (direto) {
+    produtos = parseCSV(direto);
+    atualizarFiltroCategorias();
+    renderizarTabela();
     return;
   }
-  if (r.estado !== "ok") return;   // sem resposta firme: continua com o que está guardado
-
-  const antes = lerLicencaGuardada();
-  const g = guardarLicenca(r.dados);
-  if (g.vencidaServidor) { location.reload(); return; }
-  mostrarNomeLicenca(g.nome);
-  if ((antes && antes.planilha || "") !== g.planilha) location.reload();   // planilha mudou: recomeça nela
-}
-
-function abrirLoginLicenca(podeCancelar, mensagem) {
-  el("licencaBloco").classList.remove("visivel");
-  el("licencaEmail").value = lerEmailLicenca();
-  el("licencaSenha").value = "";
-  const erro = el("licencaErro");
-  erro.textContent = mensagem || "";
-  erro.style.display = mensagem ? "" : "none";
-  el("licencaCancelar").style.display = podeCancelar ? "" : "none";
-  el("licencaModal").classList.add("visivel");
-  setTimeout(() => { try { el(el("licencaEmail").value ? "licencaSenha" : "licencaEmail").focus(); } catch (_) {} }, 100);
-}
-
-function fecharLoginLicenca() {
-  el("licencaModal").classList.remove("visivel");
-}
-
-function mostrarBloqueioLicenca() {
-  document.documentElement.classList.add("sem-licenca");
-  el("licencaMensagem").textContent = MENSAGEM_LICENCA_VENCIDA;
-  el("licencaBloco").classList.add("visivel");
-}
-
-// Outro usuário entrando neste aparelho não herda a lista, as notas nem os produtos do anterior
-function limparDadosLocais() {
-  ["nota_lista", "nota_minhas_chaves", "nota_apelidos"].forEach((k) => {
-    try { localStorage.removeItem(k); } catch (_) {}
-  });
-  return new Promise((resolver) => {
-    try {
-      const pedido = indexedDB.deleteDatabase("plipag_offline");
-      pedido.onsuccess = pedido.onerror = pedido.onblocked = () => resolver();
-      setTimeout(resolver, 1500);
-    } catch (_) { resolver(); }
-  });
-}
-
-async function enviarLoginLicenca(ev) {
-  ev.preventDefault();
-  const email = el("licencaEmail").value.trim().toLowerCase();
-  const senha = el("licencaSenha").value.trim();
-  const erro = el("licencaErro");
-  const botao = el("licencaForm").querySelector("button[type=submit]");
-  const mostrarErro = (t) => { erro.textContent = t; erro.style.display = ""; };
-
-  if (senha !== senhaDoDia()) { mostrarErro("Senha incorreta."); return; }
-
-  botao.disabled = true;
-  botao.textContent = "Verificando…";
   try {
-    // 1) cadastro no servidor; 2) sem resposta (sem internet): vale a licença guardada deste e-mail
-    const r = await consultarLicenca(email);
-    let u = null;
-
-    if (r.estado === "nao") {
-      const g = lerLicencaGuardada();
-      if (g && String(g.email || "").toLowerCase() === email) { try { localStorage.removeItem(CHAVE_LICENCA); } catch (_) {} }
-      mostrarErro((r.semAcesso
-        ? "Seu usuário não tem acesso ao app de Notas. Entre em contato com o desenvolvedor."
-        : "E-mail não cadastrado. Entre em contato com o desenvolvedor.") + (r.detalhe ? " (" + r.detalhe + ")" : ""));
+    const resp = await fetch(ACHADINHOS.planilha_catalogo + '&t=' + Date.now(), {
+      method: 'GET',
+      mode: 'cors',
+      cache: 'no-cache'
+    });
+    if (!resp.ok) {
+      mostrarMensagem(`Erro HTTP ${resp.status} ao carregar planilha.`);
       return;
     }
-    if (r.estado === "ok") {
-      u = { email: String(r.dados.email || email).toLowerCase(), nome: r.dados.nome, planilha: r.dados.planilha,
-            validade: r.dados.validade, vencida: !!r.dados.vencida };
-    } else {
-      u = licencaGuardadaDe(email);
-      if (!u) {
-        mostrarErro(r.semInternet
-          ? "Sem internet e este e-mail ainda não foi validado neste aparelho. Conecte-se para o primeiro acesso."
-          : r.mensagem);
-        return;
-      }
+    let texto = await resp.text();
+    if (texto.charCodeAt(0) === 0xFEFF) texto = texto.slice(1); // Remove BOM
+    produtos = parseCSV(texto);
+    atualizarFiltroCategorias();
+    renderizarTabela();
+  } catch (e) {
+    console.error('Erro:', e);
+    mostrarMensagem(`Erro de conexão: ${e.message}`);
+  }
+}
+
+// ============ LEITURA DA TABELA (JSON do Apps Script) ============
+// Recebe o texto JSON { ok: true, dados: [[linha1...], [linha2...]] } e devolve
+// uma lista de objetos { _linha, <cabeçalho>: valor }. _linha é a linha real na planilha.
+// (O nome parseCSV foi mantido para não mudar as chamadas; não há mais CSV.)
+function parseCSV(texto) {
+  let regs = [];
+  try {
+    const j = JSON.parse(texto);
+    if (j && j.ok && Array.isArray(j.dados)) regs = j.dados;
+  } catch (e) {}
+  if (regs.length < 2) return [];
+  let ic = regs.findIndex(r => {
+    const l = r.join(',').toLowerCase();
+    return l.includes('ativo') && l.includes('nome');
+  });
+  if (ic === -1) ic = 0;
+  const cab = regs[ic];
+  linhaCabecalho = ic + 1;
+  const out = [];
+  for (let i = ic + 1; i < regs.length; i++) {
+    const cols = regs[i];
+    if (!cols.some(c => String(c).trim() !== '')) continue; // linha em branco: pula, mas conta no número da linha
+    const obj = { _linha: i + 1 };
+    cab.forEach((h, idx) => {
+      obj[String(h).trim()] = cols[idx] !== undefined ? String(cols[idx]).trim() : '';
+    });
+    out.push(obj);
+  }
+  return out;
+}
+
+// ============ BUSCA SEGURA (Normaliza acentos) ============
+function get(p, ...nomes) {
+  for (const nome of nomes) {
+    for (const chave of Object.keys(p)) {
+      if (chave.startsWith('_')) continue;
+      const normChave = chave.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+      const normNome = nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+      if (normChave === normNome) return p[chave];
     }
-
-    if (u.vencida) { fecharLoginLicenca(); mostrarBloqueioLicenca(); return; }
-
-    const anterior = lerEmailLicenca();
-    if (anterior && anterior !== u.email) await limparDadosLocais();
-    if (r.estado === "ok") guardarLicenca(u);
-    try { localStorage.setItem(CHAVE_EMAIL_LICENCA, u.email); } catch (_) {}
-    location.reload();   // recomeça já liberado: câmera, lista e sincronização iniciam normalmente
-  } finally {
-    botao.disabled = false;
-    botao.textContent = "Entrar";
   }
+  return '';
 }
 
-function iniciarLicenca() {
-  el("licencaForm").addEventListener("submit", enviarLoginLicenca);
-  el("licencaCancelar").addEventListener("click", fecharLoginLicenca);
-  el("licencaOutroEmail").addEventListener("click", () => abrirLoginLicenca(false));
-  el("rodapeLicenca").addEventListener("click", () => abrirLoginLicenca(true));
-
-  if (EMBUTIDO) return;
-  const salvo = lerEmailLicenca();
-  const r = salvo ? aplicarLicenca(salvo) : false;
-  if (r === true) { revalidarLicenca(); return; }
-
-  document.documentElement.classList.add("sem-licenca");
-  if (r === "vencida") mostrarBloqueioLicenca(); else abrirLoginLicenca(false);
-}
-iniciarLicenca();
-
-// Voltou para o app ou a internet voltou: a licença guardada pode ter vencido; confere também no cadastro
-function conferirLicencaAgora() {
-  if (EMBUTIDO || !LICENCA_OK) return;
-  const u = licencaGuardadaDe(lerEmailLicenca());
-  if (!u || u.vencida) { location.reload(); return; }
-  revalidarLicenca();
-}
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") conferirLicencaAgora();
-});
-window.addEventListener("online", conferirLicencaAgora);
-
-
-/* MENSAGENS */
-
-function mostrarMensagem(texto, tipo = "info") {
-  const caixa = el("mensagem");
-
-  // Exibe falhas/duplicidades e o andamento da consulta.
-  if (tipo === "buscando") {
-    caixa.textContent = String(texto || "");
-    caixa.className = "mensagem visivel buscando";
-    el("carregando").classList.add("visivel");
-    return;
-  }
-
-  if (tipo !== "erro") {
-    limparMensagem();
-    return;
-  }
-
-  caixa.textContent = String(texto || "");
-  caixa.className = "mensagem visivel erro";
-  el("carregando").classList.remove("visivel");
+// ============ ESCAPE HTML ============
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
 }
 
-function limparMensagem() {
-  el("carregando").classList.remove("visivel");
-  el("mensagem").textContent = "";
-  el("mensagem").className = "mensagem";
+// ============ CATEGORIAS (lista única) ============
+function listarCategorias() {
+  return [...new Set(produtos.map(p => (get(p, 'Categoria') || '').trim()).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'));
 }
 
-
-/* COMUNICAÇÃO COM O APPS SCRIPT */
-
-function validarMotor() {
-  if (!URL_DO_MOTOR.trim()) {
-    throw new Error(
-      "O endereço do Google Apps Script não foi configurado."
-    );
-  }
-
-  if (!/^https:\/\/script\.google\.com\//i.test(URL_DO_MOTOR.trim())) {
-    throw new Error(
-      "O endereço configurado não parece ser um Web App HTTPS do Google Apps Script."
-    );
-  }
+// ============ FILTRO DE CATEGORIAS ============
+function atualizarFiltroCategorias() {
+  const sel = document.getElementById('filtroCategoria');
+  const atual = sel.value;
+  const cats = listarCategorias();
+  sel.innerHTML = '<option value="">Todas as categorias</option>' +
+    cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  sel.value = cats.includes(atual) ? atual : '';
 }
 
-async function enviarMotor(dados) {
-  // Sem licença válida nada é consultado nem enviado (só a própria consulta da licença passa)
-  if (!LICENCA_OK && dados.acao !== "licenca") {
-    const semLicenca = new Error("Licença não validada.");
-    semLicenca.name = "SemLicenca";
-    throw semLicenca;
-  }
-
-  // Busca de produtos e lojas: usa a base guardada no celular (IndexedDB) quando existe;
-  // assim a pesquisa é instantânea e funciona sem internet.
-  if (dados.acao === "produtos" && baseLocalPronta()) {
-    return buscarProdutosLocal(dados);
-  }
-
-  validarMotor();
-
-  const corpo = {
-    acao: dados.acao,
-    link: dados.link || "",
-    loja: dados.loja || "",
-    categoria: dados.categoria || ""
-  };
-
-  if (dados.email !== undefined) corpo.email = dados.email;
-  if (PLANILHA_ATIVA && dados.acao !== "licenca") corpo.planilha = PLANILHA_ATIVA;   // planilha do licenciado
-  if (dados.offset !== undefined) corpo.offset = dados.offset;
-  if (dados.limite !== undefined) corpo.limite = dados.limite;
-  if (dados.chaves !== undefined) corpo.chaves = dados.chaves;
-  if (dados.apelido !== undefined) corpo.apelido = dados.apelido;
-  if (dados.busca !== undefined) corpo.busca = dados.busca;
-  if (dados.buscaLoja !== undefined) corpo.buscaLoja = dados.buscaLoja;
-  if (dados.todos) corpo.todos = true;
-
-  let resposta;
-
-  try {
-    resposta = await fetch(URL_DO_MOTOR.trim(), {
-      method: "POST",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-      },
-      body: JSON.stringify(corpo),
-      redirect: "follow"
-    });
-  } catch (erro) {
-    const semConexao = new Error(
-      "Não foi possível conectar ao Google Apps Script. " +
-      "Confira a conexão com a internet, o endereço /exec e as permissões da implantação."
-    );
-    semConexao.name = "SemConexao";   // permite à fila de notas reconhecer a falta de internet
-    throw semConexao;
-  }
-
-  const texto = await resposta.text();
-
-  let resultado;
-
-  try {
-    resultado = JSON.parse(texto);
-  } catch (_) {
-    throw new Error(
-      "O Google Apps Script respondeu em formato inesperado. " +
-      "Confira se o endereço é o da implantação /exec."
-    );
-  }
-
-  if (!resposta.ok) {
-    throw new Error(
-      "O servidor respondeu com erro HTTP " + resposta.status + "."
-    );
-  }
-
-  const mensagemMotor = String(
-    (resultado && (resultado.aviso || resultado.mensagem || resultado.erro || resultado.error)) || ""
-  );
-
-  // Falha sem "aviso": repassa o motivo que o servidor mandou em outro campo,
-  // para a tela mostrar a causa real em vez da mensagem genérica.
-  if (resultado && resultado.ok === false && !resultado.aviso && mensagemMotor) {
-    resultado.aviso = mensagemMotor;
-  }
-
-  // Planilha guardada neste aparelho ficou desatualizada: reconfere a licença no cadastro e se ajusta
-  if (!EMBUTIDO && corpo.acao !== "licenca" && resultado && resultado.ok === false &&
-      /planilha n[ãa]o autorizada/i.test(String(resultado.aviso || ""))) {
-    ultimaRevalidacaoLicenca = 0;
-    revalidarLicenca();
-  }
-
-  // Nota recém-lançada: grava os produtos na hora no IndexedDB (a pesquisa já os enxerga)
-  if (corpo.acao === "lancar" && resultado && resultado.ok !== false && !resultado.somenteLeitura) {
-    incluirNotaNaBaseLocal(resultado);
-  }
-
-  // Notas lançadas, excluídas ou alteradas: a cópia local precisa ser atualizada
-  if (["lancar", "categoria", "apelido", "excluir"].indexOf(corpo.acao) !== -1 &&
-      resultado && resultado.ok !== false) {
-    marcarBaseDesatualizada();
-  }
-
-  return resultado;
+// ============ IMAGEM COM LINK DE AFILIADO ============
+function comLink(html, link) {
+  if (!/^https?:\/\//i.test(link || '')) return html;
+  return `<a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer" title="Abrir link de afiliado">${html}</a>`;
 }
 
-
-/* FORMATAÇÃO E EXIBIÇÃO */
-
-function formatarDinheiro(valor) {
-  if (typeof valor === "number" && Number.isFinite(valor)) {
-    return valor.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL"
-    });
-  }
-
-  if (valor === null || valor === undefined || valor === "") {
-    return "—";
-  }
-
-  const numero = Number(valor);
-
-  if (Number.isFinite(numero)) {
-    return numero.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL"
-    });
-  }
-
-  return String(valor);
+// ============ TOTAL DE PRODUTOS ============
+function atualizarTotal(exibidos) {
+  const total = produtos.length;
+  const rotulo = n => n + (n === 1 ? ' produto' : ' produtos');
+  document.getElementById('totalProdutos').textContent =
+    exibidos === total ? `Total: ${rotulo(total)}` : `Mostrando ${exibidos} de ${rotulo(total)}`;
 }
 
-function formatarDataHora(valor) {
-  if (valor === null || valor === undefined || valor === "") return "—";
-
-  let data;
-  if (valor instanceof Date) {
-    data = valor;
-  } else if (typeof valor === "string") {
-    const texto = valor.trim();
-    const dataBrasileira = texto.match(
-      /^(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
-    );
-    const dataISOsemFuso = texto.match(
-      /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?$/
-    );
-
-    if (dataBrasileira) {
-      data = new Date(
-        Number(dataBrasileira[3]), Number(dataBrasileira[2]) - 1,
-        Number(dataBrasileira[1]), Number(dataBrasileira[4] || 0),
-        Number(dataBrasileira[5] || 0), Number(dataBrasileira[6] || 0)
-      );
-    } else if (dataISOsemFuso) {
-      data = new Date(
-        Number(dataISOsemFuso[1]), Number(dataISOsemFuso[2]) - 1,
-        Number(dataISOsemFuso[3]), Number(dataISOsemFuso[4] || 0),
-        Number(dataISOsemFuso[5] || 0), Number(dataISOsemFuso[6] || 0)
-      );
-    } else {
-      data = new Date(texto);
-    }
-  } else {
-    data = new Date(valor);
-  }
-
-  if (!Number.isFinite(data.getTime())) return String(valor);
-
-  const doisDigitos = numero => String(numero).padStart(2, "0");
-  return `${doisDigitos(data.getDate())}/${doisDigitos(data.getMonth() + 1)}/${data.getFullYear()} ` +
-    `${doisDigitos(data.getHours())}:${doisDigitos(data.getMinutes())}:${doisDigitos(data.getSeconds())}`;
+// ============ MENSAGEM (tabela + cards) ============
+function mostrarMensagem(msg) {
+  document.getElementById('corpoTabela').innerHTML = `<tr><td colspan="7" class="vazio">${escapeHtml(msg)}</td></tr>`;
+  document.getElementById('listaCards').innerHTML = `<div class="vazio">${escapeHtml(msg)}</div>`;
+  document.getElementById('totalProdutos').textContent = '';
 }
 
-function escaparHtml(valor) {
-  return String(valor ?? "").replace(/[&<>"']/g, (caractere) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  })[caractere]);
+// Círculo com três pontinhos girando enquanto os produtos carregam
+function mostrarCarregando() {
+  const giro = '<span class="spin3" role="status" aria-label="Carregando produtos"><span class="trilho"></span><span class="anel"></span><span class="pontos"><i></i><i></i><i></i></span></span>';
+  document.getElementById('corpoTabela').innerHTML = `<tr><td colspan="7" class="vazio">${giro}</td></tr>`;
+  document.getElementById('listaCards').innerHTML = `<div class="vazio">${giro}</div>`;
+  document.getElementById('totalProdutos').textContent = '';
 }
 
-const POR_PAGINA = 10;   // só os 10 últimos cupons digitalizados
+// ============ RENDERIZAR (tabela no desktop, cards no celular) ============
+function renderizarTabela(manterPagina) {
+  const busca = (document.getElementById('busca').value || '').toLowerCase();
+  const filtro = document.getElementById('filtroStatus').value;
+  const filtroCat = document.getElementById('filtroCategoria').value;
+  const corpo = document.getElementById('corpoTabela');
+  const cards = document.getElementById('listaCards');
 
-// Notas digitalizadas neste aparelho (guardadas no celular)
-const CHAVE_MINHAS_NOTAS = "nota_minhas_chaves";
-function lerMinhasNotas() {
-  try {
-    const v = JSON.parse(localStorage.getItem(CHAVE_MINHAS_NOTAS) || "[]");
-    return Array.isArray(v) ? v.map(String).filter(Boolean) : [];
-  } catch (_) { return []; }
-}
-function guardarMinhaNota(chave) {
-  chave = String(chave || "").replace(/\s/g, "");
-  if (!chave) return;
-  try {
-    const lista = lerMinhasNotas().filter((c) => c !== chave);
-    lista.push(chave);
-    localStorage.setItem(CHAVE_MINHAS_NOTAS, JSON.stringify(lista.slice(-2000)));
-  } catch (_) {}
-}
-function esquecerMinhasNotas(chaves) {
-  try {
-    const fora = new Set((chaves || []).map(String));
-    localStorage.setItem(CHAVE_MINHAS_NOTAS, JSON.stringify(lerMinhasNotas().filter((c) => !fora.has(c))));
-  } catch (_) {}
-}
-let cupons = [];
-let totalNotas = 0;
-let somaNotas = 0;
-let proximoOffset = 0;
-let fimDaLista = false;
-let carregandoLista = false;
-let sequenciaLista = 0;
-
-function textoPagamento(dados) {
-  return dados.formaPagamento ||
-    dados.forma_pagamento ||
-    dados.pagamento ||
-    "";
-}
-
-function itensHtml(itens) {
-  if (!itens.length) {
-    return '<div class="dica">O motor não retornou os itens desta nota.</div>';
-  }
-
-  return itens.map((item) => {
-    const descricao = item.descricao || item.nome || "Item";
-    const quantidade = item.quantidade ?? "—";
-    const unidade = item.unidade || "";
-    const unitario =
-      item.precoUnitario ??
-      item.preco_unitario ??
-      item.valorUnitario ??
-      item.valor_unitario;
-
-    return `
-      <article class="item">
-        <div class="item-nome">${escaparHtml(descricao)}</div>
-        <div class="item-detalhes">
-          ${escaparHtml(quantidade)} ${escaparHtml(unidade)}
-          · Unitário: ${escaparHtml(formatarDinheiro(unitario))}
-        </div>
-      </article>
-    `;
-  }).join("");
-}
-
-const LIXO_SVG =
-  '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
-
-let modoSelecao = false;
-const selecionadas = new Set();
-
-const SETA_SVG =
-  '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>';
-
-function criarCartaoCupom(c) {
-  const cartao = document.createElement("article");
-  cartao.className = "cupom" + (c.aberto ? " aberto" : "");
-
-  const opcoes = CATEGORIAS.slice();
-  if (c.categoria && !opcoes.includes(c.categoria)) opcoes.push(c.categoria);
-
-  cartao.innerHTML = `
-    <div class="cupom-linha-topo">
-      <div class="cupom-datahora">${escaparHtml(formatarDataHora(c.data))}</div>
-      ${modoSelecao
-        ? `<input type="checkbox" class="cupom-marcar" aria-label="Selecionar nota"${selecionadas.has(c.chave) ? " checked" : ""}>`
-        : `<button type="button" class="cupom-excluir" aria-label="Excluir esta nota" title="Excluir esta nota">${LIXO_SVG}</button>`}
-    </div>
-    <div class="cupom-loja">${escaparHtml(c.loja || "Loja não identificada")}</div>
-
-    <div class="cupom-cat cupom-apelido">
-      <span class="rotulo">Apelido</span>
-      <input type="text" class="campo-apelido" maxlength="60" autocomplete="off" aria-label="Apelido da loja" data-loja="${escaparHtml(c.loja || "")}" value="${escaparHtml(c.apelido || "")}">
-      <span class="apelido-status" aria-live="polite"></span>
-    </div>
-
-    <div class="cupom-cat">
-      <span class="rotulo">Categoria</span>
-      <select aria-label="Categoria">
-        ${opcoes.map(o =>
-          `<option value="${escaparHtml(o)}"${o === (c.categoria || "Outros") ? " selected" : ""}>${escaparHtml(o)}</option>`
-        ).join("")}
-      </select>
-    </div>
-
-    <div class="cupom-pagto-linha">
-      <span class="cupom-pagamento">${escaparHtml(c.pagamento || "—")}</span>
-      <span class="cupom-total">${escaparHtml(formatarDinheiro(c.total))}</span>
-    </div>
-
-    <button type="button" class="cupom-seta" aria-expanded="${c.aberto ? "true" : "false"}">
-      <span>Itens da nota (${(c.itens || []).length})</span>
-      ${SETA_SVG}
-    </button>
-
-    <div class="cupom-itens">${itensHtml(c.itens || [])}</div>
-  `;
-
-  const seta = cartao.querySelector(".cupom-seta");
-  seta.addEventListener("click", () => {
-    c.aberto = !c.aberto;
-    cartao.classList.toggle("aberto", c.aberto);
-    seta.setAttribute("aria-expanded", c.aberto ? "true" : "false");
+  const filtrados = produtos.filter(p => {
+    const nome = (get(p, 'Nome') || '').toLowerCase();
+    const cat = (get(p, 'Categoria') || '').toLowerCase();
+    const ativo = get(p, 'Ativo');
+    const matchBusca = !busca || nome.includes(busca) || cat.includes(busca);
+    const matchStatus = !filtro || ativo === filtro;
+    const matchCat = !filtroCat || (get(p, 'Categoria') || '').trim() === filtroCat;
+    return matchBusca && matchStatus && matchCat;
   });
 
-  const btnExcluir = cartao.querySelector(".cupom-excluir");
-  if (btnExcluir) {
-    btnExcluir.addEventListener("click", () => {
-      excluirNotas([c.chave], c.loja);
-    });
-  }
+  // Mais recentes (últimas linhas da planilha) primeiro
+  filtrados.sort((a, b) => b._linha - a._linha);
 
-  const marcar = cartao.querySelector(".cupom-marcar");
-  if (marcar) {
-    cartao.classList.toggle("marcado", marcar.checked);
-    marcar.addEventListener("change", () => {
-      if (marcar.checked) selecionadas.add(c.chave); else selecionadas.delete(c.chave);
-      cartao.classList.toggle("marcado", marcar.checked);
-      atualizarBarraSelecao();
-    });
-  }
-
-  const campoApelido = cartao.querySelector(".campo-apelido");
-  const avisoApelido = cartao.querySelector(".apelido-status");
-  let ultimoSalvo = c.apelido || "";
-  let timerApelido = null;
-  function gravarApelido() {
-    clearTimeout(timerApelido);
-    const novo = campoApelido.value.replace(/\s+/g, " ").trim();
-    if (novo === ultimoSalvo) return;
-    ultimoSalvo = novo;
-    c.apelido = novo;
-    salvarApelido(c.loja, novo, c.chave, avisoApelido);
-  }
-  // salva sozinho 1 segundo depois de parar de digitar, ao sair do campo e ao confirmar
-  campoApelido.addEventListener("input", () => {
-    clearTimeout(timerApelido);
-    timerApelido = setTimeout(gravarApelido, 1000);
-  });
-  campoApelido.addEventListener("change", gravarApelido);
-  campoApelido.addEventListener("blur", gravarApelido);
-  campoApelido.addEventListener("keydown", (ev) => {
-    if (ev.key === "Enter") { ev.preventDefault(); campoApelido.blur(); }
-  });
-
-  cartao.querySelector("select").addEventListener("change", (ev) => {
-    c.categoria = ev.target.value;
-    salvarCategoria(c.loja, c.categoria);
-  });
-
-  return cartao;
-}
-
-function renderizarCupons() {
-  const lista = el("listaCupons");
-  lista.replaceChildren();
-
-  cupons.forEach((c) => lista.appendChild(criarCartaoCupom(c)));
-
-  const barra = el("barraCupons");
-  barra.style.display = totalNotas ? "flex" : "none";
-
-  // O ícone de excluir só aparece quando há lançamentos
-  el("btnModoExcluir").style.display = totalNotas ? "" : "none";
-  if (!totalNotas && modoSelecao) { modoSelecao = false; selecionadas.clear(); atualizarBarraSelecao(); }
-
-  el("resumoCupons").textContent =
-    totalNotas + (totalNotas === 1 ? " nota" : " notas") +
-    " · " + formatarDinheiro(somaNotas);
-
-  const rodape = el("fimCupons");
-  // Carregando: círculo girando com três pontinhos (sem texto)
-  if (carregandoLista) {
-    el("carregando").classList.add("visivel");
-    spinnerListaAtivo = true;
-    rodape.textContent = "";
-  } else {
-    if (spinnerListaAtivo) {
-      spinnerListaAtivo = false;
-      if (!requisicaoEmAndamento) el("carregando").classList.remove("visivel");
-    }
-    rodape.textContent = (cupons.length && !fimDaLista) ? "Role para ver mais" : "";
-  }
-}
-let spinnerListaAtivo = false;
-
-/*
- * A lista mostra apenas as notas que constam na planilha (aba Compras),
- * da mais recente para a mais antiga, em lotes de 50 conforme a rolagem.
- */
-async function carregarLista(reiniciar) {
-  if (EMBUTIDO) return;   // dentro do PliPag não mostra a lista de notas
-  if (!LICENCA_OK) return;
-  if (carregandoLista && !reiniciar) return;
-  if (!reiniciar && fimDaLista) return;
-
-  const minha = ++sequenciaLista;
-  const offset = reiniciar ? 0 : proximoOffset;
-
-  const minhas = lerMinhasNotas();
-
-  // Sem notas digitalizadas neste aparelho: não mostra nenhum registro
-  if (!minhas.length) {
-    cupons = []; totalNotas = 0; somaNotas = 0; proximoOffset = 0; fimDaLista = true;
-    carregandoLista = false;
-    renderizarCupons();
+  if (filtrados.length === 0) {
+    dadosAdmin = [];
+    limiteAdmin = TAM_PAGINA;
+    mostrarMensagem('Nenhum produto encontrado');
+    atualizarTotal(0);
     return;
   }
 
-  // Sem internet: mantém a lista que já está na tela, sem consultar o servidor nem mostrar erro
-  if (navigator.onLine === false) return;
-
-  carregandoLista = true;
-  renderizarCupons();
-
-  try {
-    const dados = await enviarMotor({
-      acao: "listar",
-      chaves: minhas,
-      offset: offset,
-      limite: POR_PAGINA
-    });
-
-    if (minha !== sequenciaLista) return;   // chegou uma consulta mais nova
-
-    if (!dados || dados.ok === false || !Array.isArray(dados.compras)) {
-      throw new Error((dados && dados.aviso) || "Não foi possível ler a lista de notas.");
-    }
-
-    const abertas = {};
-    cupons.forEach((c) => { if (c.aberto) abertas[c.chave] = true; });
-
-    const novos = dados.compras.map((x) => ({
-      chave: String(x.chaveAcesso || ""),
-      loja: String(x.loja || ""),
-      data: x.data || "",
-      total: x.total,
-      pagamento: String(x.pagamento || ""),
-      categoria: x.categoria || "Outros",
-      itens: Array.isArray(x.itens) ? x.itens : [],
-      apelido: String(x.apelido || ""),
-      aberto: !!abertas[String(x.chaveAcesso || "")]
-    }));
-
-    cupons = reiniciar ? novos : cupons.concat(novos);
-    novos.forEach((c) => { if (c.apelido) lembrarApelido(c.loja, c.apelido); });
-    proximoOffset = offset + dados.compras.length;
-    // a tela mostra apenas os 10 últimos: totais e seleção valem para eles
-    fimDaLista = true;
-    totalNotas = cupons.length;
-    somaNotas = cupons.reduce((t, c) => t + (Number(c.total) || 0), 0);
-  } catch (erro) {
-    // falha ao ler a lista de notas (sem conexão, por exemplo): não mostra mensagem na tela
-    console.warn("Lista de notas:", erro && erro.message);
-  } finally {
-    if (minha === sequenciaLista) {
-      carregandoLista = false;
-      renderizarCupons();
-    }
-  }
-}
-
-let selecionandoTodas = false;
-
-// Seleciona (ou desmarca) todas as notas da planilha, não só as já carregadas na tela
-async function alternarSelecionarTodas() {
-  if (selecionandoTodas) return;
-
-  if (totalNotas > 0 && selecionadas.size >= totalNotas) {
-    selecionadas.clear();
-    atualizarBarraSelecao();
-    renderizarCupons();
-    return;
-  }
-
-  selecionandoTodas = true;
-  const botao = el("btnSelecionarTodas");
-  botao.disabled = true;
-  botao.textContent = "Selecionando…";
-
-  try {
-    const dados = { chaves: cupons.map((c) => c.chave) };
-
-    selecionadas.clear();
-    dados.chaves.forEach((c) => selecionadas.add(String(c)));
-    atualizarBarraSelecao();
-    renderizarCupons();
-  } catch (erro) {
-    mostrarMensagem(erro.message || "Erro ao selecionar as notas.", "erro");
-  } finally {
-    selecionandoTodas = false;
-    botao.disabled = false;
-    atualizarBarraSelecao();
-  }
-}
-
-function atualizarBarraSelecao() {
-  el("acoesSelecao").style.display = modoSelecao ? "inline-flex" : "none";
-  el("btnExcluirSelecionadas").textContent = "Excluir (" + selecionadas.size + ")";
-  el("btnExcluirSelecionadas").disabled = selecionadas.size === 0;
-  el("btnModoExcluir").classList.toggle("ativo", modoSelecao);
-
-  const todas = totalNotas > 0 && selecionadas.size >= totalNotas;
-  el("btnSelecionarTodas").textContent = todas ? "Desmarcar todas" : "Selecionar todas";
-}
-
-function definirModoSelecao(ativo) {
-  modoSelecao = !!ativo;
-  selecionadas.clear();
-  atualizarBarraSelecao();
-  renderizarCupons();
-}
-
-async function excluirNotas(chaves, nomeLoja) {
-  // só é possível excluir notas digitalizadas neste aparelho
-  const minhas = new Set(lerMinhasNotas());
-  const lista = (chaves || []).filter((c) => c && minhas.has(String(c)));
-  if (!lista.length) return;
-
-  const pergunta = lista.length === 1
-    ? "Excluir esta nota" + (nomeLoja ? " (" + nomeLoja + ")" : "") + " da planilha?\n\nA linha em Compras e os itens em Itens serão apagados."
-    : "Excluir " + lista.length + " notas da planilha?\n\nAs linhas em Compras e os itens em Itens serão apagados. Isso não pode ser desfeito.";
-
-  if (!confirm(pergunta)) return;
-
-  mostrarMensagem("Excluindo…", "buscando");
-
-  try {
-    const LOTE = 500;
-
-    for (let i = 0; i < lista.length; i += LOTE) {
-      if (lista.length > LOTE) {
-        mostrarMensagem("Excluindo… " + Math.min(i + LOTE, lista.length) + " de " + lista.length, "buscando");
-      }
-
-      const dados = await enviarMotor({ acao: "excluir", chaves: lista.slice(i, i + LOTE) });
-
-      if (!dados || dados.ok === false) {
-        throw new Error((dados && dados.aviso) || "Não foi possível excluir.");
-      }
-    }
-
-    esquecerMinhasNotas(lista);
-    limparMensagem();
-    definirModoSelecao(false);
-    await carregarLista(true);
-  } catch (erro) {
-    mostrarMensagem(erro.message || "Erro ao excluir.", "erro");
-  }
-}
-
-// Depois de ler uma nota, atualiza a lista a partir da planilha
-function renderizarCompra(dados) {
-  lojaAtual = String((dados && dados.loja) || "");
-  carregarLista(true);
-}
-
-window.addEventListener("scroll", () => {
-  if (telaAtual !== "leitura") return;
-  if (carregandoLista || fimDaLista || !cupons.length) return;
-  if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 400) {
-    carregarLista(false);
-  }
-});
-
-
-/* LANÇAMENTO DA NOTA */
-
-/* APELIDO DA LOJA: pedido logo após digitalizar uma nota */
-function perguntarApelido(loja) {
-  return new Promise((resolver) => {
-    const caixa = el("apelidoModal");
-    const entrada = el("apelidoEntrada");
-    el("apelidoTexto").textContent = loja;
-    entrada.value = "";
-    function fechar(valor) {
-      caixa.classList.remove("visivel");
-      el("apelidoSalvar").removeEventListener("click", salvar);
-      el("apelidoPular").removeEventListener("click", pular);
-      entrada.removeEventListener("keydown", tecla);
-      resolver(valor);
-    }
-    function salvar() { fechar(entrada.value.replace(/\s+/g, " ").trim()); }
-    function pular() { fechar(""); }
-    function tecla(ev) { if (ev.key === "Enter") { ev.preventDefault(); salvar(); } }
-    el("apelidoSalvar").addEventListener("click", salvar);
-    el("apelidoPular").addEventListener("click", pular);
-    entrada.addEventListener("keydown", tecla);
-    caixa.classList.add("visivel");
-    setTimeout(() => { try { entrada.focus(); } catch (_) {} }, 150);
-  });
-}
-
-// Lojas que já têm apelido (guardado no celular, além do que o servidor devolve)
-const CHAVE_APELIDOS = "nota_apelidos";
-function normalizarLoja(loja) {
-  return String(loja || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
-}
-function lerApelidosConhecidos() {
-  try {
-    const v = JSON.parse(localStorage.getItem(CHAVE_APELIDOS) || "{}");
-    return v && typeof v === "object" && !Array.isArray(v) ? v : {};
-  } catch (_) { return {}; }
-}
-function lembrarApelido(loja, apelido) {
-  const k = normalizarLoja(loja);
-  if (!k) return;
-  const mapa = lerApelidosConhecidos();
-  if (apelido) mapa[k] = apelido; else delete mapa[k];
-  try { localStorage.setItem(CHAVE_APELIDOS, JSON.stringify(mapa)); } catch (_) {}
-}
-function lojaTemApelido(loja) {
-  const k = normalizarLoja(loja);
-  return !!lerApelidosConhecidos()[k] ||
-    cupons.some((c) => normalizarLoja(c.loja) === k && String(c.apelido || "").trim());
-}
-
-async function pedirApelidoDaNota(dados) {
-  const loja = String((dados && dados.loja) || "").trim();
-  if (!loja || EMBUTIDO) return;
-  if (dados.ok === false || !dados.chaveAcesso) return;   // falha ou nota repetida
-
-  if (Object.prototype.hasOwnProperty.call(dados, "apelido")) {
-    // o servidor (planilha) é quem sabe: com apelido não pergunta; vazio, pergunta
-    const doServidor = String(dados.apelido || "").trim();
-    lembrarApelido(loja, doServidor);
-    if (doServidor) return;
-  } else if (lojaTemApelido(loja)) {
-    return;                                                 // servidor antigo: usa o que o celular lembra
-  }
-
-  const apelido = await perguntarApelido(loja);
-  if (!apelido) return;
-
-  // círculo girando com três pontinhos até a tela mostrar a nota já com o apelido
-  el("carregando").classList.add("visivel");
-  try {
-    await salvarApelido(loja, apelido, dados.chaveAcesso, null);
-    await carregarLista(true);
-  } finally {
-    el("carregando").classList.remove("visivel");
-  }
-}
-
-
-async function lancarLink(link) {
-  const valor = String(link || "").trim();
-
-  if (!valor) {
-    mostrarMensagem(
-      "Leia o QR Code ou cole o link da nota antes de lançar.",
-      "erro"
-    );
-    mostrarPerguntaOutraCaptura_();
-    return;
-  }
-
-  if (!/^https?:\/\//i.test(valor)) {
-    mostrarMensagem(
-      "O link não parece válido. Confira o endereço do QR Code.",
-      "erro"
-    );
-    mostrarPerguntaOutraCaptura_();
-    return;
-  }
-
-  if (requisicaoEmAndamento) {
-    return;
-  }
-
-  // Sem internet: guarda o link na fila (IndexedDB) para lançar quando a conexão voltar
-  if (navigator.onLine === false) {
-    await enfileirarNota(valor);
-    return;
-  }
-
-  requisicaoEmAndamento = true;
-
-  limparMensagem();
-
-  el("btnLancar").disabled = true;
-  el("btnLer").disabled = true;
-
-  mostrarMensagem("Buscando dados da nota…", "buscando");
-
-  try {
-    const dados = await enviarMotor({
-      acao: EMBUTIDO ? "ler" : "lancar",   // dentro do PliPag só lê a nota: nada é gravado na planilha de notas
-      link: valor
-    });
-
-    if (!dados) {
-      return;
-    }
-
-    if (dados.aviso) {
-      const aviso = String(dados.aviso);
-      const notaDuplicada = /notinha\s+j[aá]\s+foi\s+lan[cç]ada|nota\s+j[aá]\s+foi\s+lan[cç]ada|duplicad/i.test(aviso);
-
-      mostrarMensagem(
-        aviso,
-        dados.ok === false || notaDuplicada ? "erro" : "info"
-      );
-    } else if (dados.ok === false) {
-      mostrarMensagem(
-        "O motor não conseguiu lançar a nota. Confira o link e tente novamente." +
-          (dados.mensagem || dados.erro ? " (" + String(dados.mensagem || dados.erro) + ")" : ""),
-        "erro"
-      );
-    } else {
-      mostrarMensagem("Nota processada.", "sucesso");
-    }
-
-    if (dados.ok !== false && dados.chaveAcesso && !EMBUTIDO) {
-      guardarMinhaNota(dados.chaveAcesso);
-    }
-
-    if (
-      dados.loja ||
-      dados.data ||
-      dados.total !== undefined ||
-      Array.isArray(dados.itens)
-    ) {
-      renderizarCompra(dados);
-      await pedirApelidoDaNota(dados);
-    } else if (dados.ok !== false) {
-      mostrarMensagem(
-        "A resposta não trouxe os dados esperados da nota. Confira o Apps Script.",
-        "erro"
-      );
-    }
-  } catch (erro) {
-    if (erro && erro.name === "SemConexao") {
-      // a conexão caiu (ou o celular acha que está online, mas não está): guarda na fila
-      await enfileirarNota(valor);
-    } else {
-      mostrarMensagem(
-        erro.message || "Ocorreu um erro ao lançar a nota.",
-        "erro"
-      );
-    }
-  } finally {
-    requisicaoEmAndamento = false;
-
-    el("btnLancar").disabled = false;
-
-    if (!cameraIniciando && !cameraAtiva) {
-      el("btnLer").disabled = false;
-    }
-
-    mostrarPerguntaOutraCaptura_();
-  }
-}
-
-
-/* CONTROLE DA CÂMERA */
-
-async function pararCamera() {
-  /*
-   * Nunca tenta parar o leitor enquanto start() ainda está
-   * executando. Registra a solicitação e deixa o início terminar.
-   */
-  if (cameraIniciando) {
-    solicitouPararDuranteInicio = true;
-
-    el("estadoCamera").textContent = "Fechando câmera…";
-
-    return;
-  }
-
-  const operacao = async () => {
-    const leitor = leitorQr;
-
-    if (iosTimerLeitura) {
-      clearTimeout(iosTimerLeitura);
-      iosTimerLeitura = null;
-    }
-
-    if (iosCameraStream) {
-      iosCameraStream.getTracks().forEach(track => track.stop());
-      iosCameraStream = null;
-    }
-
-    if (iosCameraVideo) {
-      iosCameraVideo.pause();
-      iosCameraVideo.srcObject = null;
-      iosCameraVideo.remove();
-      iosCameraVideo = null;
-    }
-
-    iosCanvas = null;
-    iosContextoCanvas = null;
-
-    if (leitor) {
-      if (cameraAtiva) {
-        try {
-          await leitor.stop();
-        } catch (erro) {
-          console.warn("Aviso ao parar a câmera:", erro);
-        }
-      }
-
-      try {
-        await leitor.clear();
-      } catch (erro) {
-        console.warn("Aviso ao limpar o leitor:", erro);
-      }
-    }
-
-    if (leitorQr === leitor) {
-      leitorQr = null;
-    }
-
-    cameraAtiva = false;
-    processandoLeitura = false;
-    lanternaLigada = false;
-    el("btnLanterna").style.display = "none";
-
-    el("btnLanterna").classList.remove("ligada");
-
-    el("areaCamera").classList.remove("aberta");
-    el("estadoCamera").textContent = "";
-
-    if (!requisicaoEmAndamento) {
-      el("btnLer").disabled = false;
-    }
-  };
-
-  operacaoCamera = operacaoCamera.then(operacao, operacao);
-
-  await operacaoCamera;
-}
-
-// A internet caiu com a câmera aberta: fecha a leitura e avisa. Quando voltar, a câmera reabre sozinha.
-window.addEventListener("offline", async () => {
-  if (!cameraAtiva && !cameraIniciando) return;
-  try { await pararCamera(); } catch (_) {}
-  avisoSemInternetQr = true;
-  mostrarMensagem(MENSAGEM_SEM_INTERNET_QR, "erro");
-});
-window.addEventListener("online", () => {
-  if (!avisoSemInternetQr) return;
-  avisoSemInternetQr = false;
-  if (!LICENCA_OK || requisicaoEmAndamento) return;
-  if (el("telaLeitura").style.display === "none") return;   // está em Produtos ou Lista
-  limparMensagem();
-  iniciarCamera();
-});
-
-function mensagemErroCamera(erro) {
-  const nome = String(
-    erro && (erro.name || erro.message) || erro || ""
-  );
-
-  if (!window.isSecureContext) {
-    return "A câmera exige HTTPS. Abra o aplicativo pelo endereço seguro do GitHub Pages.";
-  }
-
-  if (/NotAllowedError|PermissionDeniedError|permission|denied/i.test(nome)) {
-    return "O acesso à câmera foi bloqueado. Permita o uso da câmera nas configurações do navegador.";
-  }
-
-  if (/NotFoundError|DevicesNotFoundError/i.test(nome)) {
-    return "Não encontrei uma câmera neste dispositivo.";
-  }
-
-  if (/NotReadableError|TrackStartError|Could not start video source/i.test(nome)) {
-    return "A câmera pode estar sendo usada por outro aplicativo. Feche outros apps que usam a câmera e tente novamente.";
-  }
-
-  if (/OverconstrainedError/i.test(nome)) {
-    return "Não foi possível abrir a câmera solicitada. Tente novamente.";
-  }
-
-  if (/already under transition|transition/i.test(nome)) {
-    return "A câmera ainda estava mudando de estado. Feche a câmera, aguarde alguns segundos e tente novamente.";
-  }
-
-  return "Não foi possível abrir a câmera. Confira a permissão do navegador. Detalhe: " + nome;
-}
-
-function atualizarBotaoLanterna_(trilha) {
-  let disponivel = false;
-  try {
-    const capacidades = trilha && typeof trilha.getCapabilities === "function"
-      ? trilha.getCapabilities()
-      : null;
-    disponivel = Boolean(capacidades && capacidades.torch);
-  } catch (_) {
-    disponivel = false;
-  }
-  el("btnLanterna").style.display = disponivel ? "flex" : "none";
-}
-
-async function iniciarLeituraAoVivoNoIphone_() {
-  const pedidoCamera = navigator.mediaDevices.getUserMedia({
-    audio: false,
-    video: {
-      facingMode: { ideal: "environment" },
-      width: { ideal: 1920 },
-      height: { ideal: 1080 }
-    }
-  });
-
-  const pedidoZbar = import(
-    "https://cdn.jsdelivr.net/npm/@undecaf/zbar-wasm@0.11.0/dist/index.mjs"
-  ).catch(() => null);
-
-  const [stream, zbar] = await Promise.all([pedidoCamera, pedidoZbar]);
-
-  if (!zbar && typeof jsQR !== "function") {
-    stream.getTracks().forEach(track => track.stop());
-    throw new Error("Os leitores de QR não carregaram. Confira a internet e tente novamente.");
-  }
-
-  iosCameraStream = stream;
-  iosZbar = zbar;
-  iosQuadro = 0;
-  atualizarBotaoLanterna_(stream.getVideoTracks()[0]);
-
-  const video = document.createElement("video");
-  video.autoplay = true;
-  video.muted = true;
-  video.playsInline = true;
-  video.setAttribute("playsinline", "");
-  video.setAttribute("webkit-playsinline", "");
-  video.style.width = "100%";
-  video.style.height = "auto";
-  video.style.display = "block";
-  video.srcObject = stream;
-
-  el("leitor").replaceChildren(video);
-  iosCameraVideo = video;
-
-  await video.play();
-  if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
-    await new Promise((resolve, reject) => {
-      const limite = setTimeout(
-        () => reject(new Error("A câmera abriu, mas não enviou imagem.")),
-        8000
-      );
-      video.addEventListener("loadeddata", () => {
-        clearTimeout(limite);
-        resolve();
-      }, { once: true });
-    });
-  }
-
-  iosCanvas = document.createElement("canvas");
-  iosContextoCanvas = iosCanvas.getContext("2d", { willReadFrequently: true });
-  if (!iosContextoCanvas) {
-    throw new Error("Não consegui preparar a leitura da câmera.");
-  }
-
-  cameraAtiva = true;
-  el("estadoCamera").textContent =
-    "Leitura automática ativa. Mantenha o QR Code inteiro visível.";
-  agendarLeituraDoQuadroIphone_();
-}
-
-function agendarLeituraDoQuadroIphone_() {
-  if (!cameraAtiva || !iosCameraVideo || processandoLeitura) return;
-  iosTimerLeitura = setTimeout(processarQuadroIphone_, 180);
-}
-
-async function processarQuadroIphone_() {
-  iosTimerLeitura = null;
-  const video = iosCameraVideo;
-  if (
-    !cameraAtiva ||
-    !video ||
-    video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA ||
-    processandoLeitura
-  ) {
-    agendarLeituraDoQuadroIphone_();
-    return;
-  }
-
-  try {
-    const escala = Math.min(1, 1600 / video.videoWidth);
-    const largura = Math.max(1, Math.round(video.videoWidth * escala));
-    const altura = Math.max(1, Math.round(video.videoHeight * escala));
-    if (iosCanvas.width !== largura || iosCanvas.height !== altura) {
-      iosCanvas.width = largura;
-      iosCanvas.height = altura;
-    }
-    iosContextoCanvas.drawImage(video, 0, 0, largura, altura);
-    const pixels = iosContextoCanvas.getImageData(0, 0, largura, altura);
-    let textoLido = "";
-
-    if (iosZbar) {
-      const simbolos = await iosZbar.scanImageData(pixels);
-      const qr = simbolos.find(simbolo => /qr/i.test(simbolo.typeName || ""));
-      if (qr) textoLido = qr.decode();
-    }
-
-    iosQuadro += 1;
-    if (!textoLido && typeof jsQR === "function" && iosQuadro % 2 === 0) {
-      const qr = jsQR(pixels.data, largura, altura, {
-        inversionAttempts: "attemptBoth"
-      });
-      if (qr) textoLido = qr.data;
-    }
-
-    if (textoLido) {
-      processandoLeitura = true;
-      el("estadoCamera").textContent = "QR Code lido. Abrindo a nota…";
-      el("btnLer").disabled = true;
-      await pararCamera();
-      el("linkNota").value = textoLido;
-      await lancarLink(textoLido);
-      return;
-    }
-  } catch (erro) {
-    console.warn("Falha ao analisar quadro da câmera do iPhone:", erro);
-  }
-
-  agendarLeituraDoQuadroIphone_();
-}
-
-async function iniciarCamera() {
-  /*
-   * Impede inicializações duplicadas provocadas por toques rápidos.
-   */
-  if (cameraIniciando || cameraAtiva) {
-    return;
-  }
-
-  if (inicioCameraPromise) {
-    return inicioCameraPromise;
-  }
-
-  inicioCameraPromise = executarInicioCamera();
-
-  try {
-    await inicioCameraPromise;
-  } finally {
-    inicioCameraPromise = null;
-  }
-}
-
-// Sem internet o QR Code não é lido: a câmera nem abre e o app avisa
-const MENSAGEM_SEM_INTERNET_QR = "Sem internet. Conecte-se à internet para ler o QR Code.";
-let avisoSemInternetQr = false;
-
-async function executarInicioCamera() {
-  limparMensagem();
-  esconderPerguntaOutraCaptura_();
-  el("ajudaCamera").classList.remove("visivel");
-  avisoSemInternetQr = false;
-
-  if (navigator.onLine === false) {
-    avisoSemInternetQr = true;
-    mostrarMensagem(MENSAGEM_SEM_INTERNET_QR, "erro");
-    return;
-  }
-
-  if (!window.isSecureContext) {
-    el("ajudaCamera").classList.add("visivel");
-    mostrarMensagem(
-      "A câmera exige HTTPS. Abra o GitHub Pages pelo endereço https://.",
-      "erro"
-    );
-
-    return;
-  }
-
-  if (
-    !navigator.mediaDevices ||
-    !navigator.mediaDevices.getUserMedia
-  ) {
-    el("ajudaCamera").classList.add("visivel");
-    mostrarMensagem(
-      "Este navegador não disponibiliza acesso à câmera. Atualize o navegador.",
-      "erro"
-    );
-
-    return;
-  }
-
-  if (
-    !EH_IOS && typeof Html5Qrcode === "undefined"
-  ) {
-    mostrarMensagem(
-      "A biblioteca de leitura não carregou. Confira a internet e recarregue a página.",
-      "erro"
-    );
-
-    return;
-  }
-
-  if (cameraAtiva || leitorQr) {
-    await pararCamera();
-  }
-
-  cameraIniciando = true;
-  solicitouPararDuranteInicio = false;
-
-  el("areaCamera").classList.add("aberta");
-
-  el("estadoCamera").textContent =
-    "Solicitando acesso à câmera…";
-
-  el("btnLer").disabled = true;
-
-  if (EH_IOS) {
-    try {
-      await iniciarLeituraAoVivoNoIphone_();
-    } catch (erro) {
-      cameraAtiva = false;
-      el("ajudaCamera").classList.add("visivel");
-      mostrarMensagem(mensagemErroCamera(erro), "erro");
-    } finally {
-      cameraIniciando = false;
-    }
-
-    if (solicitouPararDuranteInicio) {
-      solicitouPararDuranteInicio = false;
-      await pararCamera();
-      return;
-    }
-
-    if (!cameraAtiva) {
-      await pararCamera();
-      return;
-    }
-
-    el("btnLer").disabled = false;
-    return;
-  }
-
-  let leitorCriado = null;
-
-  try {
-    leitorCriado = new Html5Qrcode("leitor", {
-      verbose: false,
-      useBarCodeDetectorIfSupported: !EH_IOS,
-      formatsToSupport: [
-        Html5QrcodeSupportedFormats.QR_CODE
-      ]
-    });
-
-    leitorQr = leitorCriado;
-
-    const config = {
-      fps: 10,
-
-      qrbox: function(largura, altura) {
-        const lado = Math.floor(
-          Math.min(largura, altura) * 0.76
-        );
-
-        return {
-          width: lado,
-          height: lado
-        };
-      },
-
-      aspectRatio: 1,
-      disableFlip: false
-    };
-
-    /*
-     * A leitura pode ocorrer logo após o início do vídeo.
-     * O callback registra a leitura e espera o start() terminar
-     * antes de tentar desligar a câmera.
-     */
-    const aoLer = (textoLido) => {
-      if (processandoLeitura) {
-        return;
-      }
-
-      processandoLeitura = true;
-
-      el("estadoCamera").textContent =
-        "QR Code lido. Preparando a nota…";
-
-      el("btnLer").disabled = true;
-
-      Promise.resolve().then(async () => {
-        /*
-         * Se o leitor ainda estiver iniciando, solicita a parada
-         * para depois do start(), sem executar stop() em paralelo.
-         */
-        if (cameraIniciando) {
-          solicitouPararDuranteInicio = true;
-
-          while (cameraIniciando) {
-            await new Promise(resolve =>
-              setTimeout(resolve, 50)
-            );
-          }
-        }
-
-        await pararCamera();
-
-        el("linkNota").value = textoLido;
-
-        await lancarLink(textoLido);
-      }).catch((erro) => {
-        mostrarMensagem(
-          erro.message || "Erro ao processar o QR Code.",
-          "erro"
-        );
-
-        processandoLeitura = false;
-        el("btnLer").disabled = false;
-      });
-    };
-
-    if (!EH_IOS) {
-      // Mantém o caminho que já funcionava no Android.
-      try {
-        await leitorCriado.start({ facingMode: "environment" }, config, aoLer, () => {});
-      } catch (primeiroErro) {
-        if (solicitouPararDuranteInicio) throw primeiroErro;
-        const cameras = await Html5Qrcode.getCameras();
-        if (!cameras || cameras.length === 0) throw primeiroErro;
-        const traseira = cameras.find(camera =>
-          /back|rear|environment|traseir|principal|wide/i.test(camera.label)
-        );
-        await leitorCriado.start(
-          (traseira || cameras[cameras.length - 1]).id,
-          config,
-          aoLer,
-          () => {}
-        );
-      }
-    }
-
-    const video = el("leitor").querySelector("video");
-    if (video) {
-      video.setAttribute("playsinline", "");
-      video.setAttribute("webkit-playsinline", "");
-      video.muted = true;
-      const stream = video.srcObject;
-      const trilha = stream && typeof stream.getVideoTracks === "function"
-        ? stream.getVideoTracks()[0]
-        : null;
-      atualizarBotaoLanterna_(trilha);
-    }
-    cameraAtiva = true;
-
-    el("estadoCamera").textContent =
-      "Centralize o QR Code inteiro dentro do quadrado.";
-
-  } catch (erro) {
-    cameraAtiva = false;
-    el("ajudaCamera").classList.add("visivel");
-
-    mostrarMensagem(
-      mensagemErroCamera(erro),
-      "erro"
-    );
-
-    /*
-     * Não chama pararCamera() enquanto cameraIniciando for true.
-     * O finally abaixo libera o estado; depois a limpeza é feita.
-     */
-  } finally {
-    cameraIniciando = false;
-  }
-
-  /*
-   * Agora o start() terminou: é seguro executar stop() e clear().
-   */
-  if (solicitouPararDuranteInicio) {
-    solicitouPararDuranteInicio = false;
-
-    await pararCamera();
-
-    return;
-  }
-
-  if (!cameraAtiva) {
-    await pararCamera();
-    return;
-  }
-
-  el("btnLer").disabled = false;
-}
-
-
-/* LANTERNA */
-
-async function alternarLanterna() {
-  if ((!leitorQr && !iosCameraStream) || !cameraAtiva || cameraIniciando) {
-    mostrarMensagem(
-      "Abra a câmera antes de tentar ligar a lanterna.",
-      "info"
-    );
-
-    return;
-  }
-
-  try {
-    const proximoEstado = !lanternaLigada;
-
-    if (iosCameraStream) {
-      const trilha = iosCameraStream.getVideoTracks()[0];
-      await trilha.applyConstraints({ advanced: [{ torch: proximoEstado }] });
-    } else {
-      await leitorQr.applyVideoConstraints({
-        advanced: [{ torch: proximoEstado }]
-      });
-    }
-
-    lanternaLigada = proximoEstado;
-
-    el("btnLanterna").classList.toggle("ligada", lanternaLigada);
-    el("btnLanterna").setAttribute("aria-label", lanternaLigada ? "Desligar lanterna" : "Lanterna");
-
-    el("estadoCamera").textContent = lanternaLigada
-      ? "Lanterna ligada. Mantenha o QR Code inteiro dentro do quadrado."
-      : "Centralize o QR Code inteiro dentro do quadrado.";
-
-  } catch (erro) {
-    mostrarMensagem(
-      "Este celular ou navegador não permite controlar a lanterna por esta página. Você ainda pode usar a câmera normalmente.",
-      "info"
-    );
-  }
-}
-
-
-/* CATEGORIA DA LOJA */
-
-// Grava o apelido da loja (vale para todas as notas dela) e atualiza os outros cartões
-async function salvarApelido(loja, apelido, chave, aviso) {
-  if (!loja && !chave) return;
-  const mostrar = (txt, erro) => {
-    if (!aviso) { if (erro) mostrarMensagem(txt, "erro"); return; }
-    aviso.textContent = txt;
-    aviso.className = "apelido-status" + (erro ? " erro" : "");
-  };
-  mostrar("Salvando…");
-  try {
-    const dados = await enviarMotor({ acao: "apelido", loja: loja, apelido: apelido, chaves: chave ? [chave] : undefined });
-    if (!dados || dados.ok === false) {
-      mostrar((dados && dados.aviso) || "Não foi possível salvar o apelido.", true);
-      return;
-    }
-    lembrarApelido(loja, apelido);
-    mostrar("✓ Salvo na planilha");
-    setTimeout(() => { if (aviso && aviso.textContent.indexOf("Salvo") >= 0) aviso.textContent = ""; }, 2500);
-    cupons.forEach((x) => { if (x.loja === loja) x.apelido = apelido; });
-    document.querySelectorAll(".campo-apelido").forEach((campo) => {
-      if (campo.dataset.loja === loja) campo.value = apelido;
-    });
-  } catch (erro) {
-    mostrar(erro.message || "Erro ao salvar o apelido.", true);
-  }
-}
-
-async function salvarCategoria(loja, categoria) {
-  if (!loja) {
-    mostrarMensagem(
-      "Lance uma nota primeiro para definir a categoria da loja.",
-      "erro"
-    );
-
-    return;
-  }
-
-  limparMensagem();
-
-  try {
-    const dados = await enviarMotor({
-      acao: "categoria",
-      loja: loja,
-      categoria: categoria
-    });
-
-    if (!dados) {
-      return;
-    }
-
-    if (dados.ok === false) {
-      mostrarMensagem(
-        dados.aviso || "Não foi possível salvar a categoria.",
-        "erro"
-      );
-    } else {
-      mostrarMensagem(
-        dados.aviso || "Categoria da loja atualizada.",
-        "sucesso"
-      );
-    }
-
-  } catch (erro) {
-    mostrarMensagem(
-      erro.message || "Erro ao atualizar a categoria.",
-      "erro"
-    );
-  }
-}
-
-
-/* EVENTOS */
-
-function acionarLeitura() {
-  iniciarCamera();
-}
-
-let timerPerguntaOutra = null;
-const TEMPO_PERGUNTA_OUTRA_MS = 12000;   // quanto tempo a pergunta fica na tela após a leitura
-
-function esconderPerguntaOutraCaptura_() {
-  if (timerPerguntaOutra) {
-    clearTimeout(timerPerguntaOutra);
-    timerPerguntaOutra = null;
-  }
-  el("perguntaOutra").style.display = "none";
-}
-
-// A pergunta só aparece logo após uma leitura e some sozinha (ou ao responder).
-function mostrarPerguntaOutraCaptura_() {
-  esconderPerguntaOutraCaptura_();
-  el("perguntaOutra").style.display = "block";
-  el("perguntaOutra").scrollIntoView({ behavior: "smooth", block: "center" });
-  timerPerguntaOutra = setTimeout(esconderPerguntaOutraCaptura_, TEMPO_PERGUNTA_OUTRA_MS);
-}
-
-el("btnLer").addEventListener("click", acionarLeitura);
-
-el("btnOutraCaptura").addEventListener("click", async () => {
-  /*
-   * Reinício limpo: reutilizar o leitor depois de fechado deixa o vídeo
-   * preto em alguns Androids. Recarregar a página abre a câmera do zero
-   * (ela inicia sozinha ao carregar).
-   */
-  esconderPerguntaOutraCaptura_();
-  try { await pararCamera(); } catch (_) {}
-  reiniciarNaCamera();
-});
-
-// Recarrega a página já abrindo a câmera (o app de Notas abre nos produtos; #camera pede a leitura)
-function reiniciarNaCamera() {
-  try { location.hash = "camera"; } catch (_) {}
-  window.location.reload();
-}
-
-// Câmera: volta para a tela de digitalização (reinício limpo). Fica no topo da tela Produtos
-// (e na barra inferior só dentro do PliPag).
-["btnNovaCaptura", "btnCameraTodos"].forEach((id) => {
-  el(id).addEventListener("click", async () => {
-    try { await pararCamera(); } catch (_) {}
-    reiniciarNaCamera();
-  });
-});
-
-el("btnConcluirCapturas").addEventListener("click", () => {
-  esconderPerguntaOutraCaptura_();
-  limparMensagem();   // some também o aviso da nota (ex.: "Essa notinha já foi lançada")
-});
-
-
-el("btnLanterna").addEventListener("click", alternarLanterna);
-
-el("btnLancar").addEventListener("click", () => {
-  lancarLink(el("linkNota").value);
-});
-
-
-/* TELAS: leitura e produtos */
-
-let telaAtual = "leitura";
-
-async function abrirProdutos() {
-  telaAtual = "produtos";
-  esconderPerguntaOutraCaptura_();
-  limparMensagem();
-  try { await pararCamera(); } catch (_) {}
-
-  el("telaLeitura").style.display = "none";
-  el("telaProdutos").style.display = "block";
-  el("telaTodos").style.display = "none";
-  el("btnProdutos").classList.remove("ativo");
-  el("btnLista").classList.add("ativo");
-  try { window.scrollTo(0, 0); } catch (_) {}
-
-  renderizarSacola();
-}
-
-/* PRODUTOS (aba Itens) */
-
-const POR_PAGINA_PRODUTOS = 50;
-
-// Cartão da tela Produtos: o checkbox inclui o item na Lista (marcar) ou o tira dela (desmarcar).
-function criarCartaoProduto(p) {
-  const cartao = document.createElement("article");
-  cartao.className = "produto";
-  cartao._produto = p;
-
-  const dia = formatarDataHora(p.data).split(" ")[0];
-  // Maps: primeiro o bairro, depois o apelido e o endereço (rua, número, cidade),
-  // para não cair numa rua de mesmo nome em outro bairro
-  const partesEnd = String(p.endereco || "").split(" - ");
-  const bairroMapa = p.bairro || (partesEnd.length > 1 ? partesEnd[0].trim() : "");
-  let ruaECidade = (partesEnd.length > 1 ? partesEnd.slice(1).join(" - ") : partesEnd[0])
-    // número zerado ou 1 é só preenchimento do cadastro da nota: não ajuda o Maps
-    .replace(/,\s*(?:S\/N|0+|1)(?=\s*(?:,|$))/i, "")
-    .replace(/^[\s,]+/, "");
-  ruaECidade = ruaECidade.replace(/,?\s*AL$/i, "").trim();
-  const consultaMapa = [bairroMapa, p.apelido, ruaECidade, "AL"]
-    .filter(Boolean).join(", ").replace(/\s+/g, " ").trim();
-  const mapa = consultaMapa
-    ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(consultaMapa)
-    : "";
-
-  cartao.innerHTML = `
-    <label class="produto-marcar"><input type="checkbox" class="check-produto" aria-label="Enviar para a lista"></label>
-    <div class="produto-data">${escaparHtml(dia)}</div>
-    <div class="produto-nome">${escaparHtml(p.descricao || "Produto")}</div>
-    <div class="produto-meta">${escaparHtml(p.loja || "")}</div>
-    ${p.apelido ? `<div class="produto-apelido">${escaparHtml(p.apelido)}</div>` : ""}
-    ${(p.endereco || mapa) ? `<div class="produto-endereco-linha"><span class="produto-endereco">${escaparHtml(p.endereco)}</span><a class="produto-mapa" href="${mapa}" target="_blank" rel="noopener" aria-label="Abrir no Google Maps" title="Abrir no Google Maps"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z" fill="#ea4335"/><path d="M12 2a7 7 0 0 0-7 7c0 1.2.4 2.600 1 4L12 6z" fill="#fbbc04"/><path d="M12 2a7 7 0 0 1 7 7c0 1.500-.5 3-1.200 4.400L12 6z" fill="#4285f4"/><path d="M12 22s3.200-3.800 5.200-7.800L12 9z" fill="#34a853"/><circle cx="12" cy="9" r="2.600" fill="#fff"/></svg></a></div>` : ""}
-    <div class="produto-total">${escaparHtml(formatarDinheiro(p.precoUnitario))}</div>
-  `;
-  const caixa = cartao.querySelector(".check-produto");
-  if (!caixa) return cartao;
-  caixa.checked = produtoNaLista(p);
-  caixa.addEventListener("change", () => {
-    alternarProdutoNaLista(p, caixa.checked);   // marcar inclui na Lista; desmarcar tira da Lista
-  });
-  return cartao;
-}
-
-let ultimoAquecimento = 0;
-
-// Ao abrir a tela, atualiza a cópia local (IndexedDB) se ela estiver velha ou não existir
-async function aquecerProdutos() {
-  // ao entrar na tela com internet, atualiza sozinho se a cópia tiver mais de 2 minutos
-  sincronizarProdutos(false, false, 2 * 60 * 1000);
-}
-
-/* TELA PRODUTOS: todos os produtos cadastrados, em ordem alfabética, de 50 em 50 */
-let todos = [];
-let totalTodos = 0;
-let proximoOffsetTodos = 0;
-let fimTodosLista = false;
-let carregandoTodos = false;
-let sequenciaTodos = 0;
-let timerBuscaTodos = null;
-let erroTodos = false;
-let limpandoBuscaTodos = false;   // true só quando a busca foi limpa pelo X
-
-async function abrirTodosProdutos() {
-  telaAtual = "todos";
-  esconderPerguntaOutraCaptura_();
-  limparMensagem();
-  try { await pararCamera(); } catch (_) {}
-
-  el("telaLeitura").style.display = "none";
-  el("telaProdutos").style.display = "none";
-  el("btnLista").classList.remove("ativo");
-  el("telaTodos").style.display = "block";
-  el("btnProdutos").classList.add("ativo");
-  try { window.scrollTo(0, 0); } catch (_) {}
-
-  aquecerProdutos();
-  carregarTodos(true);
-}
-
-// Há texto em algum dos campos de busca da tela Produtos?
-function temConsultaTodos() {
-  return el("filtroTodos").value.trim().length > 0 || el("filtroLojaTodos").value.trim().length > 0;
-}
-
-function renderizarTodos() {
-  el("dicaTodos").style.display = temConsultaTodos() ? "none" : "";
-  const lista = el("listaTodos");
-  lista.replaceChildren();
-  todos.forEach((p) => lista.appendChild(criarCartaoProduto(p)));
-
-  const girando = carregandoTodos && (!todos.length || limpandoBuscaTodos);
-  if (girando) {
-    el("carregando").classList.add("visivel");
-    spinnerTodosAtivo = true;
-  } else if (spinnerTodosAtivo) {
-    el("carregando").classList.remove("visivel");
-    spinnerTodosAtivo = false;
-  }
-
-  const naoAchou = !carregandoTodos && !todos.length && !erroTodos;
-  el("resumoTodos").textContent = girando
-    ? ""
-    : (naoAchou ? "Produto não localizado." : totalTodos + (totalTodos === 1 ? " produto" : " produtos"));
-  el("resumoTodos").classList.toggle("produto-nao-achado", naoAchou);
-
-  el("fimTodos").textContent = carregandoTodos && todos.length && !limpandoBuscaTodos
-    ? "Carregando…"
-    : (todos.length && !fimTodosLista ? "Role para ver mais" : "");
-}
-let spinnerTodosAtivo = false;
-
-async function carregarTodos(reiniciar, limpando) {
-  if (carregandoTodos && !reiniciar) return;
-  if (!reiniciar && fimTodosLista) return;
-
-  limpandoBuscaTodos = !!limpando;
-
-  const minha = ++sequenciaTodos;
-  const offset = reiniciar ? 0 : proximoOffsetTodos;
-  const busca = el("filtroTodos").value.trim();
-  const textoLoja = el("filtroLojaTodos").value.trim();
-  const buscaLoja = textoLoja.length >= 3 ? textoLoja : "";
-
-  carregandoTodos = true;
-  renderizarTodos();
-
-  try {
-    const dados = await enviarMotor({
-      acao: "produtos",
-      todos: true,
-      busca: busca,
-      buscaLoja: buscaLoja,
-      offset: offset,
-      limite: POR_PAGINA_PRODUTOS
-    });
-
-    if (minha !== sequenciaTodos) return;   // chegou uma busca mais nova
-
-    if (!dados || dados.ok === false || !Array.isArray(dados.produtos)) {
-      throw new Error((dados && dados.aviso) || "Não foi possível ler a lista de produtos.");
-    }
-
-    erroTodos = false;
-    todos = reiniciar ? dados.produtos : todos.concat(dados.produtos);
-    proximoOffsetTodos = offset + dados.produtos.length;
-    fimTodosLista = !!dados.fim;
-    totalTodos = Number(dados.total) || 0;
-  } catch (erro) {
-    if (minha === sequenciaTodos) {
-      erroTodos = true;
-      mostrarMensagem(erro.message || "Erro ao carregar os produtos.", "erro");
-    }
-  } finally {
-    if (minha === sequenciaTodos) {
-      carregandoTodos = false;
-      renderizarTodos();
-    }
-  }
-}
-
-el("filtroTodos").addEventListener("input", () => {
-  el("btnLimparFiltroTodos").style.display = el("filtroTodos").value ? "block" : "none";
-  clearTimeout(timerBuscaTodos);
-  timerBuscaTodos = setTimeout(() => carregarTodos(true), 250);
-});
-
-el("btnLimparFiltroTodos").addEventListener("click", () => {
-  el("filtroTodos").value = "";
-  el("btnLimparFiltroTodos").style.display = "none";
-  clearTimeout(timerBuscaTodos);
-  carregarTodos(true, true);
-});
-
-el("filtroLojaTodos").addEventListener("input", () => {
-  el("btnLimparFiltroLojaTodos").style.display = el("filtroLojaTodos").value ? "block" : "none";
-  clearTimeout(timerBuscaTodos);
-  timerBuscaTodos = setTimeout(() => carregarTodos(true), 250);
-});
-
-el("btnLimparFiltroLojaTodos").addEventListener("click", () => {
-  el("filtroLojaTodos").value = "";
-  el("btnLimparFiltroLojaTodos").style.display = "none";
-  clearTimeout(timerBuscaTodos);
-  carregarTodos(true, true);
-});
-
-window.addEventListener("scroll", () => {
-  if (telaAtual !== "todos") return;
-  if (carregandoTodos || fimTodosLista || !todos.length) return;
-  if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 400) {
-    carregarTodos(false);
-  }
-});
-
-
-/* LISTA DE COMPRAS: lista de produtos buscados (guardados no celular) */
-const CHAVE_LISTA = "nota_lista";
-let listaCompras = lerLocal(CHAVE_LISTA);
-
-function lerLocal(chave) {
-  try {
-    const v = JSON.parse(localStorage.getItem(chave) || "[]");
-    return Array.isArray(v) ? v : [];
-  } catch (_) { return []; }
-}
-
-function gravarLocal(chave, valor) {
-  try { localStorage.setItem(chave, JSON.stringify(valor)); } catch (_) {}
-}
-
-function chaveProduto(p) {
-  return String(p.descricao || "").toLowerCase().trim() + "|" + String(p.loja || "").toLowerCase().trim();
-}
-
-function itemDaLista(p) {
-  return {
-    k: chaveProduto(p),
-    descricao: String(p.descricao || ""),
-    loja: String(p.loja || ""),
-    apelido: String(p.apelido || ""),
-    endereco: String(p.endereco || ""),
-    preco: Number(p.precoUnitario) || 0,
-    atual: null,
-    atualTxt: ""
-  };
-}
-
-function produtoNaLista(p) {
-  const k = chaveProduto(p);
-  return listaCompras.some((b) => b.k === k);
-}
-
-// Marcar o checkbox do produto envia para a Lista; desmarcar tira da Lista
-function alternarProdutoNaLista(p, marcado) {
-  const item = itemDaLista(p);
-  listaCompras = listaCompras.filter((b) => b.k !== item.k);
-  if (marcado) {
-    listaCompras.push(item);
-    listaCompras.sort((a, b) => a.descricao.localeCompare(b.descricao, "pt-BR"));
-  }
-  gravarLocal(CHAVE_LISTA, listaCompras);
-  renderizarListaCompras();
-}
-
-function renderizarListaCompras() {
-  const rod = el("contadorRodape");
-  rod.textContent = String(listaCompras.length);
-  rod.style.display = listaCompras.length ? "block" : "none";
-  el("btnLimparLista").style.display = listaCompras.length ? "" : "none";
-  renderizarSacola();
-  sincronizarChecksTodos();
-}
-
-// Atualiza os checkboxes dos cartões da tela Produtos conforme o que está na Lista
-function sincronizarChecksTodos() {
-  document.querySelectorAll("#listaTodos article.produto").forEach((art) => {
-    const c = art.querySelector(".check-produto");
-    if (c && art._produto) c.checked = produtoNaLista(art._produto);
-  });
-}
-
-function imprimirLista() {
-  let soma = 0, somaAtual = 0, informados = 0;
-  const linhas = listaCompras.map((b) => {
-    soma += Number(b.preco) || 0;
-    const temAtual = b.atual !== null && b.atual !== undefined && Number.isFinite(Number(b.atual));
-    if (temAtual) { somaAtual += Number(b.atual); informados++; }
-    return "<tr><td>" + escaparHtml(b.descricao) + "<br><small>" + escaparHtml(b.loja) + (b.apelido ? " · " + escaparHtml(b.apelido) : "") + "</small></td><td style='text-align:right;white-space:nowrap'>" + escaparHtml(formatarDinheiro(b.preco)) + (temAtual ? "<br><small>Atual: " + escaparHtml(formatarDinheiro(Number(b.atual))) + "</small>" : "") + "</td></tr>";
-  }).join("");
-  const doc = "<!doctype html><html lang='pt-BR'><head><meta charset='utf-8'><title>Lista de compras</title>" +
-    "<style>body{font-family:Arial,sans-serif;padding:16px}h1{font-size:20px}table{width:100%;border-collapse:collapse}td{padding:8px 4px;border-bottom:1px solid #ccc;vertical-align:top}small{color:#555}.t{text-align:right;font-weight:bold;margin-top:12px}</style></head><body>" +
-    "<h1>Lista de compras</h1><table>" + linhas + "</table><div class='t'>Total: " + escaparHtml(formatarDinheiro(soma)) + "</div>" +
-    (informados ? "<div class='t'>Preço atual: " + escaparHtml(formatarDinheiro(somaAtual)) + "</div>" : "") + "</body></html>";
-
-  const quadro = document.createElement("iframe");
-  quadro.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;";
-  document.body.appendChild(quadro);
-  quadro.contentDocument.open();
-  quadro.contentDocument.write(doc);
-  quadro.contentDocument.close();
-  setTimeout(() => {
-    try { quadro.contentWindow.focus(); quadro.contentWindow.print(); } catch (_) {}
-    setTimeout(() => quadro.remove(), 3000);
-  }, 300);
-}
-
-function textoDaLista() {
-  let soma = 0, somaAtual = 0, informados = 0;
-  const linhas = listaCompras.map((b) => {
-    soma += Number(b.preco) || 0;
-    const temAtual = b.atual !== null && b.atual !== undefined && Number.isFinite(Number(b.atual));
-    if (temAtual) { somaAtual += Number(b.atual); informados++; }
-    return "• " + b.descricao + " — " + b.loja + (b.apelido ? " (" + b.apelido + ")" : "") + " — " + formatarDinheiro(b.preco) +
-      (temAtual ? " → atual " + formatarDinheiro(Number(b.atual)) : "");
-  });
-  return "*Lista de compras*\n" + linhas.join("\n") + "\n\nTotal: " + formatarDinheiro(soma) +
-    (informados ? "\nPreço atual: " + formatarDinheiro(somaAtual) : "");
-}
-
-el("btnLimparLista").addEventListener("click", async () => {
-  const n = listaCompras.length;
-  const ok = await confirmarAcao(
-    "Limpar a lista?",
-    n === 1 ? "O item será removido da lista." : "Os " + n + " itens serão removidos da lista.",
-    "Limpar"
-  );
-  if (!ok) return;
-  listaCompras = [];
-  gravarLocal(CHAVE_LISTA, listaCompras);
-  renderizarListaCompras();
-});
-
-el("btnImprimirLista").addEventListener("click", (ev) => {
-  ev.stopPropagation();
-  const m = el("menuLista");
-  m.style.display = m.style.display === "none" ? "block" : "none";
-});
-
-el("btnImprimir").addEventListener("click", () => {
-  el("menuLista").style.display = "none";
-  if (!listaCompras.length) return;
-  imprimirLista();
-});
-
-el("btnWhatsapp").addEventListener("click", () => {
-  el("menuLista").style.display = "none";
-  if (!listaCompras.length) return;
-  window.open("https://wa.me/?text=" + encodeURIComponent(textoDaLista()), "_blank", "noopener");
-});
-
-el("btnTelegram").addEventListener("click", () => {
-  el("menuLista").style.display = "none";
-  if (!listaCompras.length) return;
-  const texto = textoDaLista().replace(/\*/g, "");
-  window.open("https://t.me/share/url?url=%20&text=" + encodeURIComponent(texto), "_blank", "noopener");
-});
-
-document.addEventListener("click", (ev) => {
-  const m = el("menuLista");
-  if (m.style.display !== "none" && !m.contains(ev.target)) m.style.display = "none";
-});
-
-
-/* CONFIRMAÇÃO PERSONALIZADA */
-function confirmarAcao(titulo, texto, rotuloOk) {
-  return new Promise((resolver) => {
-    el("confTitulo").textContent = titulo;
-    el("confTexto").textContent = texto;
-    el("confOk").textContent = rotuloOk || "Confirmar";
-    const caixa = el("confirmacao");
-    function fechar(r) {
-      caixa.classList.remove("visivel");
-      el("confOk").removeEventListener("click", ok);
-      el("confCancelar").removeEventListener("click", cancelar);
-      caixa.removeEventListener("click", fundo);
-      resolver(r);
-    }
-    function ok() { fechar(true); }
-    function cancelar() { fechar(false); }
-    function fundo(ev) { if (ev.target === caixa) fechar(false); }
-    el("confOk").addEventListener("click", ok);
-    el("confCancelar").addEventListener("click", cancelar);
-    caixa.addEventListener("click", fundo);
-    caixa.classList.add("visivel");
-  });
-}
-
-/* SACOLA: produtos selecionados */
-function removerDaLista(k) {
-  listaCompras = listaCompras.filter((x) => x.k !== k);
-  gravarLocal(CHAVE_LISTA, listaCompras);
-  renderizarListaCompras();
-}
-
-function renderizarSacola() {
-  const caixa = el("sacolaItens");
-  caixa.replaceChildren();
-  let soma = 0;
-  if (!listaCompras.length) {
-    const vazio = document.createElement("p");
-    vazio.className = "dica";
-    vazio.textContent = "A lista está vazia. Na tela Produtos, marque a caixa do produto para incluí-lo aqui.";
-    caixa.appendChild(vazio);
-  }
-  listaCompras.forEach((b) => {
-    soma += Number(b.preco) || 0;
-    const linha = document.createElement("div");
-    linha.className = "item-lista";
-    linha.innerHTML =
-      '<div class="info"><div class="nome">' + escaparHtml(b.descricao) + '</div>' +
-      '<div class="loja">' + escaparHtml(b.loja) + '</div>' +
-      (b.apelido ? '<div class="apelido">' + escaparHtml(b.apelido) + '</div>' : '') + '</div>' +
-      '<span class="preco">' + escaparHtml(formatarDinheiro(b.preco)) + '</span>' +
-      '<button type="button" aria-label="Remover da lista">✕</button>' +
-      '<div class="linha-atual"><label>Preço atual</label>' +
-      '<input type="text" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" aria-label="Preço atual" value="' + escaparHtml(b.atualTxt || "") + '"></div>';
-    linha.querySelector("button").addEventListener("click", () => removerDaLista(b.k));
-    const campo = linha.querySelector(".linha-atual input");
-    campo.addEventListener("input", () => {
-      b.atualTxt = campo.value;
-      b.atual = lerPrecoDigitado(campo.value);
-      gravarLocal(CHAVE_LISTA, listaCompras);
-      atualizarTotaisSacola();   // só os totais: o campo mantém o foco
-    });
-    caixa.appendChild(linha);
-  });
-  atualizarTotaisSacola();
-}
-
-// "2,39", "2.39" ou "1.234,56" -> número; vazio ou inválido -> null
-function lerPrecoDigitado(texto) {
-  let s = String(texto || "").replace(/[^\d.,]/g, "");
-  if (!s) return null;
-  if (s.indexOf(",") !== -1) s = s.replace(/\./g, "").replace(",", ".");
-  const n = Number(s);
-  return Number.isFinite(n) ? n : null;
-}
-
-// Totais da sacola: preço anterior e preço atual (soma dos que já foram informados)
-function atualizarTotaisSacola() {
-  const total = el("sacolaTotal");
-  if (!listaCompras.length) { total.textContent = ""; return; }
-  let soma = 0, somaAtual = 0, informados = 0;
-  listaCompras.forEach((b) => {
-    soma += Number(b.preco) || 0;
-    if (b.atual !== null && b.atual !== undefined && Number.isFinite(Number(b.atual))) {
-      somaAtual += Number(b.atual);
-      informados++;
-    }
-  });
-  const n = listaCompras.length;
-  total.innerHTML = escaparHtml(n + (n === 1 ? " item" : " itens") + " · Total " + formatarDinheiro(soma)) +
-    (informados
-      ? '<div class="linha-total-atual">' + escaparHtml("Preço atual (" + informados + " de " + n + ") · " + formatarDinheiro(somaAtual)) + "</div>"
-      : "");
-}
-
-renderizarListaCompras();
-
-el("btnLista").addEventListener("click", abrirProdutos);
-el("btnProdutos").addEventListener("click", abrirTodosProdutos);
-
-el("btnModoExcluir").addEventListener("click", () => definirModoSelecao(!modoSelecao));
-el("btnSelecionarTodas").addEventListener("click", alternarSelecionarTodas);
-el("btnCancelarSelecao").addEventListener("click", () => definirModoSelecao(false));
-el("btnExcluirSelecionadas").addEventListener("click", () => {
-  excluirNotas(Array.from(selecionadas), "");
-});
-
-carregarLista(true);
-
-el("linkNota").addEventListener("keydown", (evento) => {
-  if (evento.key === "Enter") {
-    evento.preventDefault();
-
-    lancarLink(el("linkNota").value);
-  }
-});
-
-
-/* ESTADO INICIAL */
-if (EH_IOS) {
-  document.body.classList.add("ios-ios");
-  el("entradaManualLink").style.display = "none";
-  el("btnLer").textContent = "📷 Capturar";
-}
-
-// Onde o app abre: no PliPag (embutido) direto na câmera; no app de Notas, na listagem de produtos.
-// Os botões de câmera recarregam a página com #camera para abrir a leitura.
-const ABRIR_NA_CAMERA = EMBUTIDO || location.hash === "#camera";
-if (LICENCA_OK && !ABRIR_NA_CAMERA) {
-  // já mostra os produtos, para a tela da câmera não piscar antes
-  el("telaLeitura").style.display = "none";
-  el("telaTodos").style.display = "block";
-  el("btnProdutos").classList.add("ativo");
-}
-
-window.addEventListener("load", () => {
-  if (!LICENCA_OK) return;
-  if (ABRIR_NA_CAMERA) {
-    if (location.hash === "#camera") {
-      // limpa o marcador: um novo carregamento da página volta a abrir nos produtos
-      try { history.replaceState(null, "", location.pathname + location.search); } catch (_) {}
-    }
-    iniciarCamera();
-  } else {
-    abrirTodosProdutos();
-  }
-}, { once: true });
-
-
-/*
- * Ao sair da página, tenta liberar a câmera.
- * O navegador também pode interromper o vídeo automaticamente.
- */
-window.addEventListener("pagehide", () => {
-  if (iosTimerLeitura) {
-    clearTimeout(iosTimerLeitura);
-    iosTimerLeitura = null;
-  }
-
-  if (iosCameraStream) {
-    iosCameraStream.getTracks().forEach(track => track.stop());
-    iosCameraStream = null;
-  }
-
-  if (leitorQr && cameraAtiva && !cameraIniciando) {
-    leitorQr.stop().catch(() => {});
-  }
-});
-
-
-/* BASE OFFLINE (IndexedDB): produtos e lojas da planilha, para pesquisar sem internet */
-const BANCO_NOME = "plipag_offline";
-const BANCO_VERSAO = 2;   // 2: acrescenta a fila de notas
-const VALIDADE_BASE_MS = 30 * 60 * 1000;   // ao abrir, sincroniza se a cópia tiver mais de 30 minutos
-
-let baseLocal = { itens: [], quando: 0 };
-let sincronizando = false;
-let baseDesatualizada = false;
-let erroSincronizacao = "";
-
-function baseLocalPronta() {
-  return baseLocal.itens.length > 0;
-}
-
-function abrirBanco() {
-  return new Promise((resolver, rejeitar) => {
-    if (!window.indexedDB) { rejeitar(new Error("IndexedDB indisponível neste navegador.")); return; }
-    const pedido = indexedDB.open(BANCO_NOME, BANCO_VERSAO);
-    pedido.onupgradeneeded = () => {
-      const db = pedido.result;
-      if (!db.objectStoreNames.contains("produtos")) db.createObjectStore("produtos", { autoIncrement: true });
-      if (!db.objectStoreNames.contains("meta")) db.createObjectStore("meta");
-      if (!db.objectStoreNames.contains("fila")) db.createObjectStore("fila", { keyPath: "id", autoIncrement: true });
-    };
-    pedido.onsuccess = () => resolver(pedido.result);
-    pedido.onerror = () => rejeitar(pedido.error || new Error("Falha ao abrir o banco local."));
-    pedido.onblocked = () => rejeitar(new Error("Banco local bloqueado por outra aba."));
-  });
-}
-
-// Troca toda a base de uma vez (transação única): se algo falhar, a cópia antiga continua intacta
-async function gravarBaseNoBanco(itens, quando) {
-  const db = await abrirBanco();
-  try {
-    await new Promise((resolver, rejeitar) => {
-      const tx = db.transaction(["produtos", "meta"], "readwrite");
-      const guarda = tx.objectStore("produtos");
-      guarda.clear();
-      itens.forEach((a) => guarda.add(a));
-      tx.objectStore("meta").put({ quando: quando, total: itens.length }, "sync");
-      tx.oncomplete = () => resolver();
-      tx.onerror = () => rejeitar(tx.error || new Error("Falha ao gravar no banco local."));
-      tx.onabort = () => rejeitar(tx.error || new Error("Gravação no banco local cancelada."));
-    });
-  } finally {
-    db.close();
-  }
-}
-
-async function lerBaseDoBanco() {
-  const db = await abrirBanco();
-  try {
-    return await new Promise((resolver, rejeitar) => {
-      const tx = db.transaction(["produtos", "meta"], "readonly");
-      const pedidoItens = tx.objectStore("produtos").getAll();
-      const pedidoMeta = tx.objectStore("meta").get("sync");
-      tx.oncomplete = () => resolver({ itens: pedidoItens.result || [], meta: pedidoMeta.result || null });
-      tx.onerror = () => rejeitar(tx.error || new Error("Falha ao ler o banco local."));
-      tx.onabort = () => rejeitar(tx.error || new Error("Leitura do banco local cancelada."));
-    });
-  } finally {
-    db.close();
-  }
-}
-
-// Mesma normalização do servidor: sem acentos, minúsculas, espaços simples
-function normalizarTextoBusca(texto) {
-  return String(texto || "")
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
-}
-
-// Prepara os campos de busca e deixa a base em ordem alfabética (mais recente primeiro no empate)
-function prepararBaseLocal(brutos) {
-  const itens = brutos.map((a) => {
-    const nome = normalizarTextoBusca(a.descricao);
-    return Object.assign({}, a, {
-      nome: nome,
-      palavrasDesc: " " + nome.replace(/[^a-z0-9]+/g, " "),
-      textoLoja: " " + (normalizarTextoBusca(a.loja) + " " + normalizarTextoBusca(a.apelido)).replace(/[^a-z0-9]+/g, " ")
-    });
-  });
-  itens.sort((a, b) => (a.nome < b.nome ? -1 : (a.nome > b.nome ? 1 : (Number(b.ms) || 0) - (Number(a.ms) || 0))));
-  return itens;
-}
-
-// Pesquisa local: mesmas regras do servidor (início das palavras, 4 letras e depois 3),
-// um resultado por descrição (menor preço) e sempre em ordem alfabética.
-function buscarProdutosLocal(dados) {
-  const offset = Math.max(0, parseInt(dados.offset, 10) || 0);
-  // tela Produtos: de 50 em 50; tela Lista: mostra todos os resultados de uma vez (até 200)
-  const limite = dados.todos ? Math.min(100, Math.max(1, parseInt(dados.limite, 10) || 50)) : 200;
-  const busca = normalizarTextoBusca(dados.busca);
-  const termosLoja = normalizarTextoBusca(dados.buscaLoja)
-    .split(" ").filter(Boolean).map((p) => p.substring(0, 4));
-  const palavras = busca ? busca.split(" ").filter(Boolean) : [];
-
-  function filtrar(tamanho, inicio) {
-    const termos = palavras.map((p) => (tamanho ? p.substring(0, tamanho) : p));
-    return baseLocal.itens.filter((a) => {
-      for (let t = 0; t < termosLoja.length; t++) {
-        if (a.textoLoja.indexOf(" " + termosLoja[t]) === -1) return false;
-      }
-      for (let i = 0; i < termos.length; i++) {
-        if (i === 0 && inicio) {
-          if (a.palavrasDesc.indexOf(" " + termos[0]) !== 0) return false;
-        } else if (a.palavrasDesc.indexOf(" " + termos[i]) === -1) {
-          return false;
-        }
-      }
-      return true;
-    });
-  }
-
-  let filtrados;
-  if (!palavras.length) {
-    filtrados = termosLoja.length ? filtrar(0, false) : baseLocal.itens;
-  } else {
-    filtrados = filtrar(4, true);
-    if (!filtrados.length) filtrados = filtrar(3, true);
-    if (!filtrados.length) filtrados = filtrar(4, false);
-    if (!filtrados.length) filtrados = filtrar(3, false);
-  }
-
-  // cada descrição aparece uma vez, com o menor preço (empate: lançamento mais recente)
-  const menorPorDescricao = {};
-  const ordemDesc = [];
-  filtrados.forEach((a) => {
-    const pa = Number(a.preco);
-    const va = isFinite(pa) ? pa : Infinity;
-    const atual = menorPorDescricao[a.nome];
-    if (!atual) {
-      menorPorDescricao[a.nome] = { item: a, valor: va };
-      ordemDesc.push(a.nome);
-    } else if (va < atual.valor || (va === atual.valor && (Number(a.ms) || 0) > (Number(atual.item.ms) || 0))) {
-      menorPorDescricao[a.nome] = { item: a, valor: va };
-    }
-  });
-  const lista = ordemDesc.map((n) => menorPorDescricao[n].item);   // já em ordem alfabética
-
-  const total = lista.length;
-  const produtos = lista.slice(offset, offset + limite).map((a) => ({
-    data: a.ms ? new Date(a.ms).toISOString() : a.dataTxt,
-    loja: a.loja,
-    endereco: a.endereco,
-    bairro: a.bairro,
-    cidade: a.cidade,
-    apelido: a.apelido,
-    descricao: a.descricao,
-    quantidade: a.quantidade,
-    unidade: a.unidade,
-    precoUnitario: a.preco,
-    total: a.total
+  const dados = filtrados.map(p => ({
+    linha: p._linha,
+    ordem: parseInt(get(p, 'Ordem')) || ordemDaLinha(p._linha),
+    nome: get(p, 'Nome') || '(sem nome)',
+    img: (get(p, 'Imagem 1', 'Imagem') || '').trim(),
+    plat: get(p, 'Plataforma') || '',
+    link: (get(p, 'Link de Afiliado', 'Link') || '').trim(),
+    cat: get(p, 'Categoria') || '-',
+    destaque: get(p, 'Destaque') || 'Não',
+    ativo: get(p, 'Ativo') || 'Sim',
+    preco: precoDoProduto(p)
   }));
 
-  return { ok: true, produtos: produtos, total: total, offset: offset, fim: offset + produtos.length >= total, local: true };
+  if (!manterPagina) limiteAdmin = TAM_PAGINA;
+  dadosAdmin = dados;
+
+  corpo.innerHTML = dados.slice(0, limiteAdmin).map(linhaTabelaHTML).join('');
+  cards.innerHTML = dados.slice(0, limiteAdmin).map(cardHTML).join('');
+
+  atualizarTotal(dados.length);
+  observarSentinelaAdmin();
 }
 
-function formatarQuandoSync(ms) {
-  if (!ms) return "";
-  const d = new Date(ms);
-  const hora = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-  if (d.toDateString() === new Date().toDateString()) return "hoje " + hora;
-  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) + " " + hora;
+// ============ ROLAGEM INFINITA (50 em 50) ============
+const TAM_PAGINA = 50;
+let limiteAdmin = TAM_PAGINA;
+let dadosAdmin = [];
+let observadorAdmin = null;
+
+function carregarMaisAdmin() {
+  if (limiteAdmin >= dadosAdmin.length) return;
+  const inicio = limiteAdmin;
+  limiteAdmin = Math.min(limiteAdmin + TAM_PAGINA, dadosAdmin.length);
+  const novos = dadosAdmin.slice(inicio, limiteAdmin);
+  document.getElementById('corpoTabela').insertAdjacentHTML('beforeend', novos.map(linhaTabelaHTML).join(''));
+  document.getElementById('listaCards').insertAdjacentHTML('beforeend', novos.map(cardHTML).join(''));
+  observarSentinelaAdmin();
 }
 
-// A sincronização é automática e silenciosa: não há texto nem botão na tela.
-function atualizarStatusSync() {}
-
-// Baixa toda a base da planilha (em lotes) e troca a cópia do IndexedDB.
-// forcar = true ignora a validade. validade = quanto tempo a cópia vale (padrão: 30 minutos).
-async function sincronizarProdutos(forcar, manual, validade) {
-  if (sincronizando || !LICENCA_OK) return;
-  const fresca = baseLocalPronta() && !baseDesatualizada && (Date.now() - baseLocal.quando) < (validade || VALIDADE_BASE_MS);
-  if (!forcar && fresca) return;
-  if (navigator.onLine === false) {
-    if (manual) mostrarMensagem("Sem internet. A pesquisa continua usando os dados já sincronizados.", "erro");
-    atualizarStatusSync();
+function observarSentinelaAdmin() {
+  const el = document.getElementById('sentinelaAdmin');
+  if (!el || !('IntersectionObserver' in window)) {
+    while (limiteAdmin < dadosAdmin.length) carregarMaisAdmin();
     return;
   }
+  if (!observadorAdmin) {
+    observadorAdmin = new IntersectionObserver(entradas => {
+      if (entradas[0].isIntersecting) carregarMaisAdmin();
+    }, { rootMargin: '600px 0px' });
+  }
+  observadorAdmin.unobserve(el);
+  observadorAdmin.observe(el);
+}
 
-  sincronizando = true;
-  baseDesatualizada = false;   // se algo mudar durante a sincronização, a marca volta
-  erroSincronizacao = "";
-  atualizarStatusSync();
+const botaoMenu = linha =>
+  `<button type="button" class="btn-menu" title="Ações" aria-label="Ações" onclick="abrirMenu(event, ${linha})">⋮</button>`;
 
-  try {
-    let itens = [];
-    let offset = 0;
-    let versao = null;
-    let recomecos = 0;
+function linhaTabelaHTML(d) {
+    const imgHtml = d.img
+      ? `<img src="${escapeHtml(d.img)}" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:4px;" onerror="this.style.display='none'">`
+      : '—';
+    return `
+      <tr>
+        <td>${comLink(imgHtml, d.link)}</td>
+        <td><strong>${escapeHtml(d.nome)}</strong></td>
+        <td>${escapeHtml(d.plat || '-')}</td>
+        <td>${escapeHtml(d.cat)}</td>
+        <td><span class="badge badge-${d.destaque === 'Sim' ? 'destaque' : 'nao'}">${escapeHtml(d.destaque)}</span></td>
+        <td><span class="badge badge-${d.ativo === 'Sim' ? 'sim' : 'nao'}">${escapeHtml(d.ativo)}</span></td>
+        <td class="acoes">${botaoMenu(d.linha)}</td>
+      </tr>
+    `;
+}
 
-    while (true) {
-      const d = await enviarMotor({ acao: "sincronizar", offset: offset, limite: 1000 });
-      if (!d || d.ok === false || !Array.isArray(d.itens)) {
-        throw new Error((d && d.aviso) || "Não foi possível sincronizar os produtos.");
-      }
-      if (versao === null) {
-        versao = d.versao;
-      } else if (d.versao !== versao) {
-        // a planilha mudou no meio dos lotes: recomeça do zero
-        if (++recomecos > 2) throw new Error("A planilha mudou durante a sincronização. Tente de novo.");
-        itens = []; offset = 0; versao = null;
-        continue;
-      }
-      itens = itens.concat(d.itens);
-      offset += d.itens.length;
-      if (d.fim || !d.itens.length) break;
+// ===== Preço mostrado no card =====
+// Shopee: preço automático da API (colunas "Preço Shopee Min"). Outras plataformas: só o preço digitado à mão.
+function precoNum(v) {
+  if (typeof v === 'number') return v;
+  let t = String(v == null ? '' : v).replace(/R\$/g, '').replace(/\s/g, '');
+  if (!t) return 0;
+  if (t.indexOf(',') !== -1) t = t.replace(/\./g, '').replace(',', '.');
+  return parseFloat(t) || 0;
+}
+
+function formatarPreco(n) { return n.toFixed(2).replace('.', ','); }
+
+function dataHoraAdmin(v) {
+  const m = String(v || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ T]+(\d{1,2}):(\d{2}))?/);
+  if (!m) return null;
+  const d = new Date(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0), 0);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function precoDoProduto(p) {
+  const ehShopee = String(get(p, 'Plataforma') || '').toLowerCase().indexOf('shopee') !== -1;
+  if (ehShopee) {
+    const min = precoNum(get(p, 'Preço Shopee Min'));
+    if (min > 0) {
+      const quando = dataHoraAdmin(get(p, 'Preço Atualizado em'));
+      const recente = quando && (Date.now() - quando.getTime()) <= 48 * 3600 * 1000;
+      return { texto: formatarPreco(min), antigo: !recente };
     }
+  }
+  const normal = precoNum(get(p, 'Preço'));
+  const promo = precoNum(get(p, 'Preço Promocional'));
+  if (normal > 0) return { texto: formatarPreco(promo > 0 && promo < normal ? promo : normal), antigo: false };
+  return null;
+}
 
-    const quando = Date.now();
+function cardHTML(d) {
+    const imgHtml = d.img
+      ? `<img src="${escapeHtml(d.img)}" alt="" onerror="this.style.display='none'">`
+      : '🛍️';
+    return `
+      <div class="card-produto">
+        <div class="card-img">${comLink(imgHtml, d.link)}</div>
+        <div class="card-info">
+          <div class="card-nome">${escapeHtml(d.nome)}</div>
+          <div class="card-cat">${escapeHtml(d.plat ? d.plat + ' · ' + d.cat : d.cat)}</div>
+          ${d.preco ? `<div class="card-preco${d.preco.antigo ? ' antigo' : ''}">R$ ${d.preco.texto}${d.preco.antigo ? ' <small>(desatualizado)</small>' : ''}</div>` : ''}
+          <div class="card-badges">
+            <span class="badge badge-${d.destaque === 'Sim' ? 'destaque' : 'nao'}">${d.destaque === 'Sim' ? '★ Destaque' : 'Sem destaque'}</span>
+            <span class="badge badge-${d.ativo === 'Sim' ? 'sim' : 'nao'}">${d.ativo === 'Sim' ? 'Ativo' : 'Inativo'}</span>
+          </div>
+        </div>
+        ${botaoMenu(d.linha)}
+        <span class="card-ordem" title="Posição na loja (Ordem)">#${d.ordem}</span>
+      </div>
+    `;
+}
+
+// ============ MENU DE AÇÕES (três pontinhos) ============
+let menuLinha = null;
+
+function abrirMenu(ev, linha) {
+  ev.stopPropagation();
+  const menu = document.getElementById('menuAcoes');
+  if (!menu.classList.contains('oculto') && menuLinha === linha) { fecharMenu(); return; }
+  menuLinha = linha;
+  menu.classList.remove('oculto');
+  const r = ev.currentTarget.getBoundingClientRect();
+  const w = menu.offsetWidth, h = menu.offsetHeight;
+  const left = Math.min(Math.max(8, r.right - w), window.innerWidth - w - 8);
+  let top = r.bottom + 4;
+  if (top + h > window.innerHeight - 8) top = Math.max(8, r.top - h - 4);
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
+}
+
+function fecharMenu() {
+  document.getElementById('menuAcoes').classList.add('oculto');
+  menuLinha = null;
+}
+
+function acaoMenu(tipo) {
+  const linha = menuLinha;
+  fecharMenu();
+  if (linha === null) return;
+  if (tipo === 'editar') editar(linha);
+  else if (tipo === 'excluir') excluir(linha);
+}
+
+document.addEventListener('click', e => { if (!e.target.closest('#menuAcoes')) fecharMenu(); });
+window.addEventListener('scroll', fecharMenu, true);
+window.addEventListener('resize', fecharMenu);
+
+// ============ MODAL ============
+function abrirModal() {
+  const overlay = document.getElementById('modal');
+  overlay.classList.remove('oculto');
+  // Sempre abre mostrando o topo do formulário
+  const topo = () => {
+    overlay.scrollTop = 0;
+    const m = overlay.querySelector('.modal');
+    if (m) m.scrollTop = 0;
+  };
+  topo();
+  requestAnimationFrame(topo);
+  setTimeout(topo, 150);
+}
+function fecharModal() {
+  document.getElementById('modal').classList.add('oculto');
+  document.getElementById('formProduto').reset();
+  produtoEditando = null;
+}
+function novoProduto() {
+  produtoEditando = null;
+  document.getElementById('modalTitulo').textContent = 'Novo Produto';
+  document.getElementById('formProduto').reset();
+  document.getElementById('campoLinha').value = '';
+  document.getElementById('ordem').value = proximaOrdem();
+  abrirModal();
+}
+
+// ✅ CORRIGIDO: Agora preenche TODOS os campos da planilha
+function editar(linha) {
+  const p = produtos.find(x => x._linha === linha);
+  if (!p) { alert('Produto não encontrado'); return; }
+  
+  produtoEditando = p;
+  document.getElementById('modalTitulo').textContent = 'Editar Produto';
+  document.getElementById('campoLinha').value = linha;
+  
+  document.getElementById('ativo').value = get(p, 'Ativo') || 'Sim';
+  document.getElementById('tipo').value = get(p, 'Tipo') || 'FISICO';
+  document.getElementById('plataforma').value = get(p, 'Plataforma') || '';
+  document.getElementById('categoria').value = get(p, 'Categoria') || '';
+  document.getElementById('subcategoria').value = get(p, 'Subcategoria') || '';
+  
+  document.getElementById('nome').value = get(p, 'Nome') || '';
+  document.getElementById('descricao').value = get(p, 'Descrição') || '';
+  document.getElementById('preco').value = get(p, 'Preço') || '';
+  document.getElementById('precoPromocional').value = get(p, 'Preço Promocional') || '';
+  document.getElementById('cupom').value = get(p, 'Cupom') || '';
+  
+  document.getElementById('validade').value = get(p, 'Validade da oferta') || '';
+  document.getElementById('link').value = get(p, 'Link de Afiliado', 'Link') || '';
+  document.getElementById('textoBotao').value = get(p, 'Texto do Botão') || '';
+  document.getElementById('video').value = get(p, 'Vídeo (URL YouTube)', 'Vídeo') || '';
+  
+  document.getElementById('imagem1').value = get(p, 'Imagem 1', 'Imagem') || '';
+  limparArquivoImagem();
+  mostrarPreview(document.getElementById('imagem1').value.trim());
+  document.getElementById('imagem2').value = get(p, 'Imagem 2') || '';
+  document.getElementById('imagem3').value = get(p, 'Imagem 3') || '';
+  document.getElementById('imagem4').value = get(p, 'Imagem 4') || '';  
+  
+  document.getElementById('ordem').value = get(p, 'Ordem') || ordemDaLinha(linha);
+  document.getElementById('destaque').value = get(p, 'Destaque') || 'Não';
+  
+  abrirModal();
+}
+
+// Próxima linha livre da planilha
+function proximaLinha() {
+  return produtos.reduce((m, x) => Math.max(m, x._linha || 1), 1) + 1;
+}
+// Ordem padrão = posição do produto na lista (1 = primeiro produto, logo abaixo do cabeçalho)
+function ordemDaLinha(linha) { return linha - linhaCabecalho; }
+function proximaOrdem() { return ordemDaLinha(proximaLinha()); }
+
+// ============ SALVAR ============
+document.getElementById('formProduto').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btnSalvar = document.querySelector('#formProduto button[type="submit"]');
+  if (btnSalvar.disabled) return;
+  btnSalvar.disabled = true;
+  try { await salvarProduto(); } finally { btnSalvar.disabled = false; }
+});
+
+async function salvarProduto() {
+  const linha = document.getElementById('campoLinha').value;
+
+  // Imagem: se escolheu um arquivo, envia primeiro e usa o link gerado
+  let urlImagem = document.getElementById('imagem1').value.trim();
+  const arquivo = document.getElementById('imagemArquivo').files[0];
+  if (!arquivo && !urlImagem) {
+    toast('❌ Escolha uma imagem para o produto.', 'erro');
+    return;
+  }
+  if (arquivo) {
     try {
-      await gravarBaseNoBanco(itens, quando);
-      try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (_) {}
-    } catch (erroBanco) {
-      // sem IndexedDB: a pesquisa local funciona nesta sessão, mas não fica guardada
-      console.warn("IndexedDB:", erroBanco);
+      toast('Salvando...', 'carregando', true);
+      urlImagem = await enviarImagem(arquivo);
+    } catch (err) {
+      console.error(err);
+      toast('❌ ' + err.message, 'erro');
+      return;
     }
-    baseLocal = { itens: prepararBaseLocal(itens), quando: quando };
-    tentativasSync = 0;
-  } catch (erro) {
-    erroSincronizacao = (erro && erro.message) || "Falha na sincronização.";
-    console.warn("Sincronização:", erroSincronizacao);
-    baseDesatualizada = true;                 // continua pendente: será tentada de novo
-    if (manual) mostrarMensagem(erroSincronizacao, "erro");
-    else agendarNovaTentativaSync();
+  }
+  
+  // ✅ CORRIGIDO: Objeto com TODAS as 20 colunas exatas da planilha
+  const numOrdem = parseInt(document.getElementById('ordem').value) || (linha ? ordemDaLinha(parseInt(linha)) : proximaOrdem());
+  const produto = {
+    'Ativo': document.getElementById('ativo').value,
+    'Tipo': document.getElementById('tipo').value.trim(),
+    'Plataforma': document.getElementById('plataforma').value.trim(),
+    'Categoria': document.getElementById('categoria').value.trim(),
+    'Subcategoria': document.getElementById('subcategoria').value.trim(),
+    'Nome': document.getElementById('nome').value.trim(),
+    'Descrição': document.getElementById('descricao').value.trim(),
+    'Preço': document.getElementById('preco').value.trim(),
+    'Preço Promocional': document.getElementById('precoPromocional').value.trim(),
+    'Cupom': document.getElementById('cupom').value.trim(),
+    'Validade da oferta': document.getElementById('validade').value.trim(),
+    'Link de Afiliado': document.getElementById('link').value.trim(),
+    'Texto do Botão': document.getElementById('textoBotao').value.trim(),
+    'Vídeo (URL YouTube)': document.getElementById('video').value.trim(),
+    'Imagem 1': urlImagem,
+    'Imagem 2': document.getElementById('imagem2').value.trim(),
+    'Imagem 3': document.getElementById('imagem3').value.trim(),
+    'Imagem 4': document.getElementById('imagem4').value.trim(),
+    'Ordem': String(numOrdem),
+    'Destaque': document.getElementById('destaque').value,
+  };
+  
+  const dados = {
+    acao: linha ? 'editar' : 'novo',
+    linha: linha ? parseInt(linha) : null,
+    produto: produto
+  };
+  
+  try {
+    toast('Salvando...', 'carregando', true);
+    const urlEnvio = `${URL_GRAVAR_PRODUTOS}?data=${encodeURIComponent(JSON.stringify(dados))}`;
+    const resp = await fetch(urlEnvio, { method: 'GET' });
+    const texto = await resp.text();
+    
+    let resJson;
+    try { resJson = JSON.parse(texto); } 
+    catch (parseErr) {
+      console.error('Resposta inválida:', texto);
+      toast('❌ Servidor retornou resposta inválida.', 'erro');
+      return;
+    }
+
+    if (resJson.ok) {
+      toast('✅ ' + (resJson.msg || 'Salvo com sucesso!'), 'sucesso');
+      fecharModal();
+      aplicarLocal(dados.acao, dados.linha, produto);
+      recarregarDireto();
+    } else {
+      toast('❌ Erro: ' + (resJson.msg || 'Desconhecido'), 'erro');
+    }
+  } catch (err) {
+    console.error(err);
+    toast('❌ Erro de rede: ' + err.message, 'erro');
+  }
+}
+
+// ============ EXCLUIR ============
+async function excluir(linha) {
+  const p = produtos.find(x => x._linha === linha);
+  const nomeProduto = p ? (get(p, 'Nome') || 'este produto') : 'este produto';
+  if (!confirm(`Deseja realmente excluir:\n\n"${nomeProduto}"?`)) return;
+  
+  try {
+    toast('🗑️ Excluindo...', '');
+    const dados = { acao: 'excluir', linha: linha };
+    const urlEnvio = `${URL_GRAVAR_PRODUTOS}?data=${encodeURIComponent(JSON.stringify(dados))}`;
+    const resp = await fetch(urlEnvio, { method: 'GET' });
+    const texto = await resp.text();
+    
+    let resJson;
+    try { resJson = JSON.parse(texto); } 
+    catch (err) {
+      toast('❌ Resposta inválida do servidor', 'erro');
+      return;
+    }
+
+    if (resJson.ok) {
+      toast('✅ Excluído com sucesso!', 'sucesso');
+      aplicarLocal('excluir', linha);
+      recarregarDireto();
+    } else {
+      toast('❌ Erro: ' + (resJson.msg || 'Desconhecido'), 'erro');
+    }
+  } catch (err) {
+    toast('❌ Erro de rede: ' + err.message, 'erro');
+  }
+}
+
+let toastTimer = null;
+// fixo = true: a mensagem fica na tela até a próxima (usado no "Aguarde...")
+function toast(msg, tipo, fixo) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  if (tipo === 'carregando') {
+    t.innerHTML = '<span class="spin3" role="status" aria-label="' + msg + '"><span class="trilho"></span><span class="anel"></span><span class="pontos"><i></i><i></i><i></i></span></span>' + '<span class="hud-txt">' + msg + '</span>';
+  } else {
+    t.textContent = msg;
+  }
+  t.className = 'toast ' + (tipo || '');
+  t.classList.remove('oculto');
+  clearTimeout(toastTimer);
+  if (!fixo) toastTimer = setTimeout(() => t.classList.add('oculto'), 3500);
+}
+
+// ============ COMBOBOX DE CATEGORIA ============
+function normalizar(s) {
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function renderizarOpcoesCategoria() {
+  const lista = document.getElementById('listaCategorias');
+  const digitado = document.getElementById('categoria').value.trim();
+  const termo = normalizar(digitado);
+  const todas = listarCategorias();
+  const filtradas = termo ? todas.filter(c => normalizar(c).includes(termo)) : todas;
+  let html = filtradas.map(c => `<div class="combo-opcao" data-valor="${escapeHtml(c)}">${escapeHtml(c)}</div>`).join('');
+  if (termo && !todas.some(c => normalizar(c) === termo)) {
+    html += `<div class="combo-nova">➕ Nova categoria: <strong>${escapeHtml(digitado)}</strong></div>`;
+  }
+  if (!html) html = '<div class="combo-vazio">Nenhuma categoria cadastrada</div>';
+  lista.innerHTML = html;
+}
+
+function abrirComboCategoria() {
+  renderizarOpcoesCategoria();
+  document.getElementById('listaCategorias').classList.remove('oculto');
+}
+function fecharComboCategoria() {
+  document.getElementById('listaCategorias').classList.add('oculto');
+}
+function alternarComboCategoria() {
+  const lista = document.getElementById('listaCategorias');
+  if (lista.classList.contains('oculto')) abrirComboCategoria(); else fecharComboCategoria();
+}
+
+// ============ IMAGEM (galeria / arquivo local) ============
+let urlPreviaTemp = null;
+
+function mostrarPreview(src) {
+  const img = document.getElementById('imagemPreview');
+  const box = document.getElementById('previewBox');
+  if (src) {
+    img.onerror = () => box.classList.add('oculto');
+    img.onload = () => box.classList.remove('oculto');
+    img.src = src;
+  } else {
+    img.removeAttribute('src');
+    box.classList.add('oculto');
+  }
+}
+
+function limparArquivoImagem() {
+  document.getElementById('imagemArquivo').value = '';
+  document.getElementById('nomeArquivo').textContent = 'Nenhuma imagem selecionada';
+  if (urlPreviaTemp) { URL.revokeObjectURL(urlPreviaTemp); urlPreviaTemp = null; }
+}
+
+// Reduz a foto (máx. 1000px) e converte para JPEG, devolvendo só o base64
+async function redimensionarImagem(arquivo, max = 1000, qualidade = 0.85) {
+  const url = URL.createObjectURL(arquivo);
+  try {
+    const img = await new Promise((ok, erro) => {
+      const i = new Image();
+      i.onload = () => ok(i);
+      i.onerror = () => erro(new Error('Não foi possível ler a imagem escolhida.'));
+      i.src = url;
+    });
+    const escala = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.round(img.naturalWidth * escala);
+    const h = Math.round(img.naturalHeight * escala);
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+    return canvas.toDataURL('image/jpeg', qualidade).split(',')[1];
   } finally {
-    sincronizando = false;
-    atualizarStatusSync();
-    // algo foi lançado/alterado enquanto sincronizava: atualiza de novo em seguida
-    if (baseDesatualizada && !erroSincronizacao) setTimeout(() => sincronizarProdutos(false), 2000);
+    URL.revokeObjectURL(url);
   }
 }
 
-// Falhou (rede instável logo após reconectar, por exemplo): tenta de novo depois de 5 s, 15 s, 45 s e 2 min
-let tentativasSync = 0;
-function agendarNovaTentativaSync() {
-  const esperas = [5000, 15000, 45000, 120000];
-  if (tentativasSync >= esperas.length) return;
-  setTimeout(() => sincronizarProdutos(false), esperas[tentativasSync++]);
-}
-
-// Nota recém-lançada: grava os produtos dela na base local (memória + IndexedDB) sem esperar a
-// sincronização completa. Segue a regra do servidor: um registro por produto e loja, o mais recente.
-// Só age se a base já foi baixada uma vez (senão a pesquisa passaria a usar uma base quase vazia).
-async function incluirNotaNaBaseLocal(nota) {
-  try {
-    if (!baseLocalPronta() || !nota || !Array.isArray(nota.itens) || !nota.itens.length) return;
-
-    const lojaNorm = normalizarTextoBusca(nota.loja);
-    const msData = nota.data ? Date.parse(nota.data) : NaN;
-    const msNota = isFinite(msData) ? msData : Date.now();
-
-    // produtos já conhecidos desta loja e o endereço mais recente dela
-    const existentes = new Map();
-    let ref = null;
-    baseLocal.itens.forEach((a, i) => {
-      if (normalizarTextoBusca(a.loja) !== lojaNorm) return;
-      existentes.set(a.nome, i);
-      if (a.endereco && (!ref || (Number(a.ms) || 0) > (Number(ref.ms) || 0))) ref = a;
-    });
-    const apelido = String(nota.apelido || (ref && ref.apelido) || "");
-
-    const novos = new Map();
-    const substituir = new Set();
-    nota.itens.forEach((it) => {
-      const nome = normalizarTextoBusca(it.descricao);
-      if (!nome) return;
-      const i = existentes.get(nome);
-      if (i !== undefined && (Number(baseLocal.itens[i].ms) || 0) >= msNota) return;   // já há um mais recente
-      if (i !== undefined) substituir.add(i);
-      novos.set(nome, {
-        ms: msNota,
-        dataTxt: "",
-        loja: nota.loja,
-        endereco: ref ? ref.endereco : "",
-        bairro: ref ? ref.bairro : "",
-        cidade: ref ? ref.cidade : "",
-        apelido: apelido,
-        descricao: it.descricao,
-        quantidade: it.quantidade,
-        unidade: it.unidade,
-        preco: it.precoUnitario,
-        total: it.total
-      });
-    });
-    if (!novos.size) return;
-
-    const mantidos = baseLocal.itens.filter((_, i) => !substituir.has(i));
-    baseLocal = { itens: prepararBaseLocal(mantidos.concat(Array.from(novos.values()))), quando: baseLocal.quando };
-
-    // grava no IndexedDB (se uma sincronização estiver rodando, ela traz a nota e regrava tudo)
-    if (!sincronizando) {
-      const brutos = baseLocal.itens.map((a) => {
-        const copia = Object.assign({}, a);
-        delete copia.nome; delete copia.palavrasDesc; delete copia.textoLoja;
-        return copia;
-      });
-      await gravarBaseNoBanco(brutos, baseLocal.quando);
-    }
-  } catch (erro) {
-    console.warn("Base local (nota nova):", erro);
-  }
-}
-
-// Depois de lançar, excluir ou alterar notas: atualiza a cópia local em segundo plano
-function marcarBaseDesatualizada() {
-  baseDesatualizada = true;
-  setTimeout(() => sincronizarProdutos(false), 1500);
-}
-
-async function iniciarBaseLocal() {
-  try {
-    const { itens, meta } = await lerBaseDoBanco();
-    if (itens.length) baseLocal = { itens: prepararBaseLocal(itens), quando: (meta && meta.quando) || 0 };
-  } catch (_) {}
-  atualizarStatusSync();
-  sincronizarProdutos(false);
-}
-
-// Voltou a internet: atualiza a cópia sozinho, mesmo que ela seja recente (a planilha pode ter mudado)
-window.addEventListener("online", () => {
-  atualizarStatusSync();
-  tentativasSync = 0;
-  marcarBaseDesatualizada();
-});
-window.addEventListener("offline", atualizarStatusSync);
-// Ao voltar para o app e a cada minuto com o app aberto: cobre o caso do iPhone não avisar que a internet voltou
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") sincronizarProdutos(false);
-});
-setInterval(() => {
-  if (document.visibilityState !== "visible" || navigator.onLine === false) return;
-  sincronizarProdutos(false);
-}, 60000);
-iniciarBaseLocal();
-
-
-/* FILA DE NOTAS (IndexedDB): QR lidos sem internet ficam guardados e são lançados quando a conexão voltar.
-   O servidor recusa nota repetida, então reenviar da fila nunca duplica o lançamento. */
-const MAX_TENTATIVAS_FILA = 5;   // depois disso a nota só é reenviada pelo botão "Lançar agora"
-let processandoFila = false;
-let resumoFila = "";
-let timerResumoFila = null;
-
-async function operarFila_(modo, fn) {
-  const db = await abrirBanco();
-  try {
-    return await new Promise((resolver, rejeitar) => {
-      const tx = db.transaction(["fila"], modo);
-      const pedido = fn(tx.objectStore("fila"));
-      tx.oncomplete = () => resolver(pedido ? pedido.result : undefined);
-      tx.onerror = () => rejeitar(tx.error || new Error("Falha na fila de notas."));
-      tx.onabort = () => rejeitar(tx.error || new Error("Operação na fila de notas cancelada."));
-    });
-  } finally {
-    db.close();
-  }
-}
-
-async function filaListar() {
-  const itens = (await operarFila_("readonly", (s) => s.getAll())) || [];
-  return itens.sort((a, b) => (a.criado || 0) - (b.criado || 0));
-}
-function filaSalvar(item) { return operarFila_("readwrite", (s) => s.put(item)); }
-function filaRemover(id) { return operarFila_("readwrite", (s) => s.delete(id)); }
-
-// Guarda o link na fila (sem repetir o mesmo link) e mostra o aviso na tela
-async function enfileirarNota(link) {
-  limparMensagem();
-  try {
-    const atuais = await filaListar();
-    if (!atuais.some((i) => i.link === link)) {
-      await operarFila_("readwrite", (s) => s.add({ link: link, criado: Date.now(), tentativas: 0, erro: "" }));
-    }
-    el("linkNota").value = "";
-    resumoFila = "";
-  } catch (erro) {
-    console.warn("Fila:", erro);
-    mostrarMensagem("Sem internet e não foi possível guardar a nota neste aparelho. Tente de novo quando a conexão voltar.", "erro");
-    return;
-  }
-  await renderizarFila();
-  mostrarPerguntaOutraCaptura_();
-}
-
-async function renderizarFila() {
-  const caixa = el("filaNotas");
-  let itens = [];
-  try { itens = await filaListar(); } catch (_) {}
-
-  if (!itens.length && !resumoFila) { caixa.style.display = "none"; return; }
-  caixa.style.display = "";
-
-  el("filaTitulo").textContent = itens.length
-    ? itens.length + (itens.length === 1 ? " nota aguardando lançamento" : " notas aguardando lançamento")
-    : resumoFila;
-  el("filaAviso").textContent = !itens.length ? "" : (
-    (resumoFila ? resumoFila + " · " : "") +
-    (navigator.onLine === false
-      ? "Sem internet: serão lançadas sozinhas quando a conexão voltar."
-      : "Elas são lançadas sozinhas; se não for, toque em Lançar agora.")
-  );
-
-  const botao = el("btnFilaAgora");
-  botao.style.display = itens.length ? "" : "none";
-  botao.disabled = processandoFila;
-  botao.textContent = processandoFila ? "Lançando…" : "Lançar agora";
-
-  const lista = el("filaLista");
-  lista.replaceChildren();
-  itens.forEach((item, i) => {
-    const linha = document.createElement("div");
-    linha.className = "fila-item";
-    const info = document.createElement("div");
-    const nome = document.createElement("b");
-    nome.textContent = "Nota " + (i + 1);
-    const quando = document.createElement("small");
-    quando.textContent = "guardada " + formatarQuandoSync(item.criado);
-    info.appendChild(nome);
-    info.appendChild(quando);
-    if (item.erro) {
-      const erro = document.createElement("small");
-      erro.className = "fila-erro";
-      erro.textContent = item.erro;
-      info.appendChild(erro);
-    }
-    const remover = document.createElement("button");
-    remover.type = "button";
-    remover.setAttribute("aria-label", "Remover da fila");
-    remover.textContent = "✕";
-    remover.addEventListener("click", async () => {
-      const ok = await confirmarAcao("Remover da fila?", "Esta nota não será lançada.", "Remover");
-      if (!ok) return;
-      try { await filaRemover(item.id); } catch (_) {}
-      renderizarFila();
-    });
-    linha.appendChild(info);
-    linha.appendChild(remover);
-    lista.appendChild(linha);
+// Envia para o Apps Script (que salva no Drive) e devolve o link público da imagem
+async function enviarImagem(arquivo) {
+  const base64 = await redimensionarImagem(arquivo);
+  const resp = await fetch(URL_GRAVAR_PRODUTOS, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+      acao: 'uploadImagem',
+      nome: 'produto_' + Date.now() + '.jpg',
+      tipo: 'image/jpeg',
+      base64: base64
+    })
   });
+  const texto = await resp.text();
+  let json;
+  try { json = JSON.parse(texto); }
+  catch (e) { throw new Error('O servidor não aceitou o envio da imagem. Atualize a implantação do Apps Script.'); }
+  if (!json.ok || !json.url) throw new Error(json.msg || 'Falha ao enviar a imagem.');
+  return json.url;
 }
 
-// Envia as notas da fila, uma a uma, da mais antiga para a mais nova
-async function processarFila(manual) {
-  if (processandoFila || requisicaoEmAndamento || !LICENCA_OK) return;
-  if (navigator.onLine === false) {
-    if (manual) mostrarMensagem("Sem internet. As notas continuam guardadas na fila.", "erro");
+// ============ EVENTOS ============
+document.getElementById('btnNovo').onclick = novoProduto;
+document.getElementById('btnRecarregar').onclick = carregarProdutos;
+document.getElementById('btnRecarregarMobile').onclick = carregarProdutos;
+document.getElementById('busca').oninput = () => renderizarTabela();
+document.getElementById('filtroStatus').onchange = () => renderizarTabela();
+document.getElementById('filtroCategoria').onchange = () => renderizarTabela();
+
+// Combobox de categoria
+const campoCategoria = document.getElementById('categoria');
+campoCategoria.addEventListener('focus', abrirComboCategoria);
+campoCategoria.addEventListener('click', abrirComboCategoria);
+campoCategoria.addEventListener('input', abrirComboCategoria);
+document.getElementById('comboSeta').addEventListener('click', alternarComboCategoria);
+document.getElementById('listaCategorias').addEventListener('click', e => {
+  const op = e.target.closest('.combo-opcao');
+  if (op) campoCategoria.value = op.dataset.valor;
+  fecharComboCategoria();
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('#comboCategoria')) fecharComboCategoria();
+});
+
+// Imagem
+document.getElementById('imagemArquivo').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (urlPreviaTemp) { URL.revokeObjectURL(urlPreviaTemp); urlPreviaTemp = null; }
+  if (!f) {
+    document.getElementById('nomeArquivo').textContent = 'Nenhuma imagem selecionada';
+    mostrarPreview(document.getElementById('imagem1').value.trim());
     return;
   }
-
-  let itens = [];
-  try { itens = await filaListar(); } catch (_) { return; }
-  if (!itens.length) return;
-
-  processandoFila = true;
-  renderizarFila();
-  let lancadas = 0, repetidas = 0, pendentes = 0;
-
-  try {
-    for (const item of itens) {
-      if (!manual && (item.tentativas || 0) >= MAX_TENTATIVAS_FILA) { pendentes++; continue; }
-
-      let dados;
-      try {
-        dados = await enviarMotor({ acao: "lancar", link: item.link });
-      } catch (erro) {
-        if (erro && erro.name === "SemConexao") {   // sem rede: tenta depois
-          pendentes += 1;
-          agendarNovaTentativaFila();
-          break;
-        }
-        item.tentativas = (item.tentativas || 0) + 1;
-        item.erro = (erro && erro.message) || "Falha ao lançar a nota.";
-        await filaSalvar(item);
-        pendentes++;
-        continue;
-      }
-
-      const aviso = String((dados && dados.aviso) || "");
-      const repetida = /notinha\s+j[aá]\s+foi\s+lan[cç]ada|nota\s+j[aá]\s+foi\s+lan[cç]ada|duplicad/i.test(aviso);
-
-      if (repetida) {
-        await filaRemover(item.id);
-        repetidas++;
-      } else if (dados && dados.ok !== false) {
-        await filaRemover(item.id);
-        lancadas++;
-        if (dados.chaveAcesso && !EMBUTIDO) guardarMinhaNota(dados.chaveAcesso);
-      } else {
-        // por exemplo, a nota ainda não está disponível na SEFAZ: tenta de novo mais tarde
-        item.tentativas = (item.tentativas || 0) + 1;
-        item.erro = aviso || "Não foi possível lançar a nota.";
-        await filaSalvar(item);
-        pendentes++;
-      }
-    }
-  } catch (erro) {
-    console.warn("Fila:", erro);
-  } finally {
-    processandoFila = false;
+  if (!f.type.startsWith('image/')) {
+    toast('❌ Escolha um arquivo de imagem.', 'erro');
+    limparArquivoImagem();
+    return;
   }
-
-  if (lancadas || repetidas) {
-    resumoFila = (lancadas ? lancadas + (lancadas === 1 ? " nota lançada" : " notas lançadas") : "") +
-      (lancadas && repetidas ? " · " : "") +
-      (repetidas ? repetidas + (repetidas === 1 ? " já estava lançada" : " já estavam lançadas") : "");
-    clearTimeout(timerResumoFila);
-    timerResumoFila = setTimeout(() => { resumoFila = ""; renderizarFila(); }, 12000);
-    // a lista de notas da tela precisa mostrar as novas
-    try { if (typeof carregarLista === "function") carregarLista(true); } catch (_) {}
-  }
-  await renderizarFila();
-}
-
-// Rede instável logo após reconectar: tenta de novo depois de 5 s, 15 s, 45 s e 2 min
-let tentativasRedeFila = 0;
-function agendarNovaTentativaFila() {
-  const esperas = [5000, 15000, 45000, 120000];
-  if (tentativasRedeFila >= esperas.length) return;
-  setTimeout(() => processarFila(false), esperas[tentativasRedeFila++]);
-}
-
-el("btnFilaAgora").addEventListener("click", () => processarFila(true));
-window.addEventListener("online", () => { tentativasRedeFila = 0; renderizarFila(); setTimeout(() => processarFila(false), 1500); });
-setInterval(() => {
-  if (document.visibilityState !== "visible" || navigator.onLine === false) return;
-  processarFila(false);
-}, 60000);
-window.addEventListener("offline", renderizarFila);
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") processarFila(false);
+  urlPreviaTemp = URL.createObjectURL(f);
+  document.getElementById('nomeArquivo').textContent = f.name;
+  mostrarPreview(urlPreviaTemp);
 });
-renderizarFila().then(() => processarFila(false));
+// Digitar/colar um link substitui a imagem escolhida
+document.getElementById('imagem1').addEventListener('input', e => {
+  limparArquivoImagem();
+  mostrarPreview(e.target.value.trim());
+});
+// Ao limpar o formulário (novo produto / fechar), zera preview e combo
+document.getElementById('formProduto').addEventListener('reset', () => {
+  limparArquivoImagem();
+  mostrarPreview('');
+  fecharComboCategoria();
+});
+
+// ============ BOTÃO X PARA LIMPAR CAMPOS ============
+// O X só aparece quando o campo tem texto (via CSS :placeholder-shown)
+function adicionarBotaoLimpar(input) {
+  if (!input) return;
+  if (!input.getAttribute('placeholder')) input.setAttribute('placeholder', ' ');
+  const wrap = document.createElement('div');
+  wrap.className = 'campo-limpar';
+  if (input.id === 'busca') wrap.classList.add('campo-busca');
+  input.parentNode.insertBefore(wrap, input);
+  wrap.appendChild(input);
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn-limpar';
+  btn.title = 'Limpar';
+  btn.setAttribute('aria-label', 'Limpar campo');
+  btn.textContent = '×';
+  btn.addEventListener('click', () => {
+    input.value = '';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.focus();
+  });
+  wrap.appendChild(btn);
+}
+
+['busca', 'nome', 'plataforma', 'categoria', 'subcategoria', 'link', 'validade', 'video']
+  .forEach(id => adicionarBotaoLimpar(document.getElementById(id)));
+
+// X sobre a pré-visualização remove a imagem (arquivo escolhido e/ou link)
+document.getElementById('btnRemoverImagem').addEventListener('click', () => {
+  limparArquivoImagem();
+  document.getElementById('imagem1').value = '';
+  mostrarPreview('');
+});
+
+// Inicializa
+// ===== Campo "Preço" manual =====
+// Só aparece no formulário se, na aba Configurações, "Mostrar Campo Preço" estiver como SIM.
+function semAcentoMaiusculo(t) {
+  return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase();
+}
+
+// Converte link do Google Drive em endereço que o navegador consegue exibir como imagem
+function urlImagemDrive(url) {
+  const u = String(url || '').trim();
+  if (!u) return '';
+  let m = u.match(/drive\.google\.com\/file\/d\/([^\/\?]+)/);
+  if (!m) m = u.match(/drive\.google\.com\/open\?id=([^&]+)/);
+  if (!m) m = u.match(/drive\.google\.com\/uc\?.*id=([^&]+)/);
+  return m ? 'https://lh3.googleusercontent.com/d/' + m[1] : u;
+}
+
+// Lê a aba Configurações (uma vez) e ajusta o painel:
+//  - "Mostrar Campo Preço" = SIM  -> mostra o campo Preço no formulário
+//  - "Logo (URL)" e "Nome da Loja" -> mostram o logotipo acima do título
+async function configurarPainel() {
+  try {
+    const r = await fetch(ACHADINHOS.planilha_configuracoes + '&_t=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) return;
+    const j = await r.json();
+    const linhas = (j && j.ok && Array.isArray(j.dados)) ? j.dados : [];
+    let mostrarPreco = false, logo = '', nome = '';
+    for (const c of linhas) {
+      const chave = semAcentoMaiusculo(c[0]).replace(/[^A-Z0-9() ]/g, '').trim();
+      if (chave === 'MOSTRAR CAMPO PRECO') mostrarPreco = semAcentoMaiusculo(c[1]) === 'SIM';
+      else if (chave === 'LOGO (URL)') logo = String(c[1] || '').trim();
+      else if (chave === 'NOME DA LOJA') nome = String(c[1] || '').trim();
+    }
+
+    const grupo = document.getElementById('grupoPreco');
+    if (grupo) grupo.classList.toggle('campo-oculto', !mostrarPreco);
+
+    const marca = document.getElementById('marcaAdmin');
+    const img = document.getElementById('logoAdmin');
+    if (marca && (logo || nome)) {
+      document.getElementById('nomeLojaAdmin').textContent = nome;
+      if (logo && img) {
+        img.onload = function () { img.style.display = 'block'; };
+        img.onerror = function () { img.style.display = 'none'; };
+        img.src = urlImagemDrive(logo);
+      }
+      marca.style.display = 'flex';
+    }
+  } catch (e) {
+    console.warn('Não foi possível ler as Configurações:', e);
+  }
+}
+configurarPainel();
+
+carregarProdutos();
+
 </script>
 </body>
 </html>
