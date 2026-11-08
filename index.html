@@ -2587,6 +2587,13 @@
       return window.location.origin + window.location.pathname.split('index.html').join('');
     }
 
+    // Preço como aparece no card (automático da Shopee, promocional ou normal)
+    function precoExibido(p) {
+      var promo = p.precoPromo && p.precoPromo > 0 && p.preco > 0 && p.precoPromo < p.preco;
+      var v = p.precoAutoMin > 0 ? p.precoAutoMin : (promo ? p.precoPromo : p.preco);
+      return v > 0 ? 'R$ ' + fp(v) : '';
+    }
+
     function registrarClique(p) {
       if (typeof ACHADINHOS === 'undefined' || !ACHADINHOS.registrar_cliques) return;
       try {
@@ -2600,6 +2607,8 @@
           plataforma: p.plataforma,
           tipo: p.tipo,
           categoria: p.categoria,
+          link: p.linkAfiliado,
+          preco: precoExibido(p),
           origem: origem,
           site: urlDoSite()
         };
